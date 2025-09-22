@@ -39,6 +39,39 @@ router.get('/me/unread/count', authRequired, async (req, res) => {
   }
 });
 
+// List conversations with last message and unread counts
+router.get('/conversations', authRequired, async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const [rows] = await pool.execute(
+      `SELECT u.id, u.name, u.profile_pic,
+        (SELECT COUNT(*) FROM messages m
+           WHERE m.sender_id = u.id AND m.receiver_id = ? AND m.read_at IS NULL) AS unread_count,
+        (SELECT content FROM messages m
+           WHERE (m.sender_id = ? AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = ?)
+           ORDER BY m.created_at DESC LIMIT 1) AS last_message,
+        (SELECT created_at FROM messages m
+           WHERE (m.sender_id = ? AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = ?)
+           ORDER BY m.created_at DESC LIMIT 1) AS last_time
+       FROM (
+         SELECT DISTINCT other_id FROM (
+           SELECT receiver_id AS other_id FROM messages WHERE sender_id = ?
+           UNION
+           SELECT sender_id AS other_id FROM messages WHERE receiver_id = ?
+         ) x
+       ) conv
+       JOIN users u ON u.id = conv.other_id
+       ORDER BY last_time DESC
+       LIMIT 100`,
+      [myId, myId, myId, myId, myId, myId, myId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get conversation between current user and :userId
 router.get('/:userId', authRequired, async (req, res) => {
   try {

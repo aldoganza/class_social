@@ -8,11 +8,22 @@ export default function Chat() {
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
+  const [conversations, setConversations] = useState([])
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
   const [error, setError] = useState('')
 
+  const loadConversations = async () => {
+    try {
+      const data = await api.get('/messages/conversations')
+      setConversations(data)
+    } catch (e) {
+      // silently ignore
+    }
+  }
+
   useEffect(() => {
+    loadConversations()
     const fetchMessages = async () => {
       if (!id) return
       try {
@@ -47,6 +58,7 @@ export default function Chat() {
       const msg = await api.post(`/messages/${id}`, { content: text })
       setMessages((m) => [...m, msg])
       setText('')
+      loadConversations()
     } catch (e) {
       setError(e.message)
     }
@@ -55,14 +67,17 @@ export default function Chat() {
   return (
     <div className="page two-col">
       <div className="card sidebar">
-        <input value={query} onChange={(e) => searchUsers(e.target.value)} placeholder="Search classmates" />
+        <h3 style={{marginTop:0}}>Messages</h3>
         <div className="list">
-          {results.map(r => (
-            <a key={r.id} className="list-item" href={`/chat/${r.id}`}>
-              <img src={r.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
-              <div>
-                <div className="bold">{r.name}</div>
-                <div className="muted small">{r.email}</div>
+          {conversations.map(c => (
+            <a key={c.id} className="list-item" href={`/chat/${c.id}`}>
+              <img src={c.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
+              <div style={{flex:1}}>
+                <div className="row between">
+                  <span className="bold">{c.name}</span>
+                  {c.unread_count > 0 && <span className="badge">{c.unread_count > 99 ? '99+' : c.unread_count}</span>}
+                </div>
+                <div className="muted small" title={c.last_message || ''}>{(c.last_message || '').slice(0, 40)}</div>
               </div>
             </a>
           ))}

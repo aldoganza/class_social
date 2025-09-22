@@ -44,7 +44,7 @@ export default function Navbar() {
         {user && <Link to={`/profile/${user.id}`} className="nav-link">Profile</Link>}
         {user && (
           <Link to="/chat" className="nav-link badge-wrap">
-            Chat
+            Messages
             {unread > 0 && <span className="badge">{unread > 99 ? '99+' : unread}</span>}
           </Link>
         )}
