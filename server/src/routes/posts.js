@@ -86,4 +86,20 @@ router.get('/user/:id', authRequired, async (req, res) => {
   }
 });
 
+// GET /api/posts/explore - recent posts from all users
+router.get('/explore', authRequired, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT p.*, u.name, u.profile_pic FROM posts p
+       JOIN users u ON u.id = p.user_id
+       ORDER BY p.created_at DESC
+       LIMIT 100`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

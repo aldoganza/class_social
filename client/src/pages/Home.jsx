@@ -7,10 +7,12 @@ export default function Home() {
   const [image, setImage] = useState(null)
   const [feed, setFeed] = useState([])
   const [error, setError] = useState('')
+  const [tab, setTab] = useState('explore') // 'following' | 'explore'
 
-  const loadFeed = async () => {
+  const loadFeed = async (target = tab) => {
     try {
-      const data = await api.get('/posts/feed')
+      const endpoint = target === 'following' ? '/posts/feed' : '/posts/explore'
+      const data = await api.get(endpoint)
       setFeed(data)
     } catch (e) {
       setError(e.message)
@@ -18,8 +20,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    loadFeed()
+    loadFeed('explore')
   }, [])
+
+  useEffect(() => {
+    loadFeed(tab)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
 
   const onPost = async (e) => {
     e.preventDefault()
@@ -31,7 +38,7 @@ export default function Home() {
       await api.post('/posts', form)
       setContent('')
       setImage(null)
-      await loadFeed()
+      await loadFeed(tab)
     } catch (e) {
       setError(e.message)
     }
@@ -39,6 +46,14 @@ export default function Home() {
 
   return (
     <div className="page">
+      <div className="card row between">
+        <div className="row gap">
+          <button className={`btn ${tab === 'following' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('following')}>Following</button>
+          <button className={`btn ${tab === 'explore' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('explore')}>Explore</button>
+        </div>
+        <span className="muted small">View {tab === 'following' ? 'posts from people you follow' : 'recent posts from everyone'}</span>
+      </div>
+
       <div className="card create-post">
         <h2>Create Post</h2>
         {error && <div className="error">{error}</div>}
