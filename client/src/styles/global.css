@@ -57,6 +57,13 @@ input:focus, textarea:focus { border-color: var(--info); }
 .sidebar .list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow: auto; }
 .list-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg-soft); }
 
+/* Profile posts grid */
+.grid-posts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.grid-post { }
+@media (min-width: 900px) {
+  .grid-posts { grid-template-columns: repeat(3, 1fr); }
+}
+
 .chat { display: flex; flex-direction: column; gap: 12px; }
 .messages { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow: auto; padding-right: 6px; }
 .bubble { max-width: 70%; padding: 10px 12px; border-radius: 16px; position: relative; }

@@ -36,4 +36,52 @@ router.get('/', authRequired, async (req, res) => {
   }
 });
 
+// Get followers for a user
+router.get('/:id/followers', authRequired, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [rows] = await pool.execute(
+      `SELECT u.id, u.name, u.email, u.profile_pic
+       FROM follows f JOIN users u ON u.id = f.follower_id
+       WHERE f.followed_id = ?`
+      , [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get following for a user
+router.get('/:id/following', authRequired, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [rows] = await pool.execute(
+      `SELECT u.id, u.name, u.email, u.profile_pic
+       FROM follows f JOIN users u ON u.id = f.followed_id
+       WHERE f.follower_id = ?`
+      , [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get counts (followers, following, posts)
+router.get('/:id/stats', authRequired, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [[followers]] = await pool.query('SELECT COUNT(*) AS c FROM follows WHERE followed_id = ?', [userId]);
+    const [[following]] = await pool.query('SELECT COUNT(*) AS c FROM follows WHERE follower_id = ?', [userId]);
+    const [[posts]] = await pool.query('SELECT COUNT(*) AS c FROM posts WHERE user_id = ?', [userId]);
+    res.json({ followers: followers.c || 0, following: following.c || 0, posts: posts.c || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
