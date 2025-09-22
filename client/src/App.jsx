@@ -4,6 +4,7 @@ import Signup from './pages/Signup.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Chat from './pages/Chat.jsx'
+import Search from './pages/Search.jsx'
 import Navbar from './components/Navbar.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 
@@ -49,6 +50,15 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Chat />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/search"
+              element={
+                <ProtectedRoute>
+                  <Search />
                 </ProtectedRoute>
               }
             />

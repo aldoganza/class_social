@@ -42,6 +42,7 @@ export default function Navbar() {
         <Link to="/" className="logo">🎓 Classmates</Link>
         {user && <Link to="/" className="nav-link">Home</Link>}
         {user && <Link to={`/profile/${user.id}`} className="nav-link">Profile</Link>}
+        {user && <Link to="/search" className="nav-link">Search</Link>}
         {user && (
           <Link to="/chat" className="nav-link badge-wrap">
             Messages
