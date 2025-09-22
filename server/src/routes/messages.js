@@ -36,7 +36,47 @@ router.get('/:userId', authRequired, async (req, res) => {
        LIMIT 500`,
       [myId, otherId, otherId, myId]
     );
+
+    // Mark all messages sent by otherId to me as read
+    await pool.execute(
+      `UPDATE messages SET read_at = NOW()
+       WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL`,
+      [otherId, myId]
+    );
+
     res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Mark conversation as read explicitly
+router.post('/:userId/read', authRequired, async (req, res) => {
+  try {
+    const otherId = Number(req.params.userId);
+    const myId = req.user.id;
+    const [result] = await pool.execute(
+      `UPDATE messages SET read_at = NOW()
+       WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL`,
+      [otherId, myId]
+    );
+    res.json({ updated: result.affectedRows || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get total unread count for current user
+router.get('/me/unread/count', authRequired, async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const [rows] = await pool.execute(
+      `SELECT COUNT(*) AS cnt FROM messages WHERE receiver_id = ? AND read_at IS NULL`,
+      [myId]
+    );
+    res.json({ count: rows[0].cnt || 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
