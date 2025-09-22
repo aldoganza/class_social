@@ -24,6 +24,21 @@ router.post('/:receiverId', authRequired, async (req, res) => {
   }
 });
 
+// Get total unread count for current user (place BEFORE parameterized routes)
+router.get('/me/unread/count', authRequired, async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const [rows] = await pool.execute(
+      `SELECT COUNT(*) AS cnt FROM messages WHERE receiver_id = ? AND read_at IS NULL`,
+      [myId]
+    );
+    res.json({ count: rows[0].cnt || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get conversation between current user and :userId
 router.get('/:userId', authRequired, async (req, res) => {
   try {
@@ -62,21 +77,6 @@ router.post('/:userId/read', authRequired, async (req, res) => {
       [otherId, myId]
     );
     res.json({ updated: result.affectedRows || 0 });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get total unread count for current user
-router.get('/me/unread/count', authRequired, async (req, res) => {
-  try {
-    const myId = req.user.id;
-    const [rows] = await pool.execute(
-      `SELECT COUNT(*) AS cnt FROM messages WHERE receiver_id = ? AND read_at IS NULL`,
-      [myId]
-    );
-    res.json({ count: rows[0].cnt || 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

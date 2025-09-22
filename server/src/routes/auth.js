@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../lib/db');
 const { authRequired } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
@@ -14,9 +16,22 @@ function signToken(user) {
   return jwt.sign(payload, secret, { expiresIn: '7d' });
 }
 
+// Multer storage for profile pictures
+const uploadDir = path.join(__dirname, '..', '..', process.env.UPLOAD_DIR || 'uploads');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, uploadDir); },
+  filename: function (req, file, cb) {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, unique + ext);
+  }
+});
+const upload = multer({ storage });
+
 // POST /api/auth/signup
 router.post(
   '/signup',
+  upload.single('profile_pic'),
   [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email required'),
@@ -26,7 +41,7 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { name, email, password, profile_pic } = req.body;
+    const { name, email, password } = req.body;
 
     try {
       // Check if email exists
@@ -34,12 +49,17 @@ router.post(
       if (rows.length > 0) return res.status(400).json({ error: 'Email already registered' });
 
       const hash = await bcrypt.hash(password, 10);
+      let profilePicUrl = null;
+      if (req.file) {
+        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+        profilePicUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      }
       const [result] = await pool.execute(
         'INSERT INTO users (name, email, password_hash, profile_pic) VALUES (?, ?, ?, ?)',
-        [name, email, hash, profile_pic || null]
+        [name, email, hash, profilePicUrl]
       );
 
-      const user = { id: result.insertId, name, email, profile_pic: profile_pic || null };
+      const user = { id: result.insertId, name, email, profile_pic: profilePicUrl };
       const token = signToken(user);
       res.status(201).json({ token, user });
     } catch (err) {

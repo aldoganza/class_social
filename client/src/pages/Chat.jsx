@@ -18,6 +18,10 @@ export default function Chat() {
       try {
         const data = await api.get(`/messages/${id}`)
         setMessages(data)
+        // Mark messages from this user as read
+        await api.post(`/messages/${id}/read`, {})
+        // Notify Navbar to refresh unread badge now
+        window.dispatchEvent(new Event('refresh-unread'))
       } catch (e) {
         setError(e.message)
       }

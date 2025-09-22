@@ -7,16 +7,33 @@ export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [profilePic, setProfilePic] = useState('')
+  const [profileFile, setProfileFile] = useState(null)
+  const [preview, setPreview] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const res = await signup({ name, email, password, profile_pic: profilePic || null })
+    const form = new FormData()
+    form.append('name', name)
+    form.append('email', email)
+    form.append('password', password)
+    if (profileFile) form.append('profile_pic', profileFile)
+    const res = await signup(form)
     if (res.ok) navigate('/')
     else setError(res.error)
+  }
+
+  const onPickFile = (e) => {
+    const file = e.target.files?.[0]
+    setProfileFile(file || null)
+    if (file) {
+      const url = URL.createObjectURL(file)
+      setPreview(url)
+    } else {
+      setPreview('')
+    }
   }
 
   return (
@@ -35,8 +52,14 @@ export default function Signup() {
           <label>Password</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" />
 
-          <label>Profile picture URL (optional)</label>
-          <input value={profilePic} onChange={(e) => setProfilePic(e.target.value)} placeholder="https://..." />
+          <label>Profile picture (optional)</label>
+          <input type="file" accept="image/*" onChange={onPickFile} />
+          {preview && (
+            <div className="row gap">
+              <img src={preview} alt="preview" className="avatar-lg" />
+              <span className="muted small">Preview</span>
+            </div>
+          )}
 
           <button className="btn btn-primary" disabled={loading}>
             {loading ? 'Signing up...' : 'Create Account'}
