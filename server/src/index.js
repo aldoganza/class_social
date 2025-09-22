@@ -4,6 +4,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const fs = require('fs');
 
 const { pool } = require('./lib/db');
 const authRoutes = require('./routes/auth');
@@ -20,8 +21,12 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Static for uploads
-const uploadDir = process.env.UPLOAD_DIR || 'uploads';
-app.use('/uploads', express.static(path.join(__dirname, '..', uploadDir)));
+const uploadDirName = process.env.UPLOAD_DIR || 'uploads';
+const uploadAbsPath = path.join(__dirname, '..', uploadDirName);
+if (!fs.existsSync(uploadAbsPath)) {
+  fs.mkdirSync(uploadAbsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadAbsPath));
 
 // Health check
 app.get('/api/health', (req, res) => {

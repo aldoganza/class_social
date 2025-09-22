@@ -1,0 +1,29 @@
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+
+async function request(path, options = {}) {
+  const token = localStorage.getItem('token')
+  const headers = options.headers ? { ...options.headers } : {}
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const res = await fetch(`${BASE_URL}/api${path}`, {
+    ...options,
+    headers,
+  })
+
+  const contentType = res.headers.get('content-type') || ''
+  const data = contentType.includes('application/json') ? await res.json() : await res.text()
+  if (!res.ok) {
+    const msg = typeof data === 'string' ? data : data.error || 'Request failed'
+    throw new Error(msg)
+  }
+  return data
+}
+
+export const api = {
+  get: (path) => request(path),
+  post: (path, body) => request(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
+  del: (path) => request(path, { method: 'DELETE' }),
+}

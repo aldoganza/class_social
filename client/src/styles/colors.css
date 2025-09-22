@@ -1,0 +1,13 @@
+:root {
+  --bg: #0f1020;
+  --bg-soft: #171833;
+  --card: #1e2040;
+  --text: #f6f6ff;
+  --muted: #b9b9d6;
+  --primary: #6c63ff; /* purple */
+  --accent: #ff6ec7;  /* pink */
+  --info: #00c2ff;    /* blue */
+  --warn: #ffb347;    /* orange */
+  --success: #4cd964; /* green */
+  --shadow: rgba(0,0,0,0.4);
+}
