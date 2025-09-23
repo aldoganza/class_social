@@ -18,12 +18,14 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  const location = useLocation()
+  const isChat = location.pathname.startsWith('/chat')
   return (
     <AuthProvider>
       <div className="layout">
         <Sidebar />
         <main className="content">
-          <div className="page-container">
+          <div className={`page-container ${isChat ? 'wide' : ''}`}>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />

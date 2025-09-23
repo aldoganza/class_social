@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -12,6 +12,9 @@ export default function Chat() {
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
   const [error, setError] = useState('')
+  const [otherUser, setOtherUser] = useState(null)
+  const messagesRef = useRef(null)
+  const composerRef = useRef(null)
 
   const loadConversations = async () => {
     try {
@@ -27,8 +30,19 @@ export default function Chat() {
     const fetchMessages = async () => {
       if (!id) return
       try {
+        // fetch other user info for header
+        try {
+          const u = await api.get(`/users/${id}`)
+          setOtherUser(u)
+        } catch {}
         const data = await api.get(`/messages/${id}`)
         setMessages(data)
+        // scroll to bottom
+        setTimeout(() => {
+          if (messagesRef.current) {
+            messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+          }
+        }, 0)
         // Mark messages from this user as read
         await api.post(`/messages/${id}/read`, {})
         // Notify Navbar to refresh unread badge now
@@ -59,8 +73,34 @@ export default function Chat() {
       setMessages((m) => [...m, msg])
       setText('')
       loadConversations()
+      // scroll to bottom after send
+      setTimeout(() => {
+        if (messagesRef.current) {
+          messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+        }
+      }, 0)
     } catch (e) {
       setError(e.message)
+    }
+  }
+
+  const onComposerKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      if (text.trim()) {
+        // simulate submit
+        sendMessage(e)
+      }
+    }
+  }
+
+  const onComposerChange = (e) => {
+    setText(e.target.value)
+    // auto-grow
+    const el = composerRef.current
+    if (el) {
+      el.style.height = 'auto'
+      el.style.height = Math.min(el.scrollHeight, 200) + 'px'
     }
   }
 
@@ -68,9 +108,9 @@ export default function Chat() {
     <div className="page two-col">
       <div className="card sidebar">
         <h3 style={{marginTop:0}}>Messages</h3>
-        <div className="list">
+        <div className="list" role="navigation" aria-label="Conversations list">
           {conversations.map(c => (
-            <a key={c.id} className="list-item" href={`/chat/${c.id}`}>
+            <a key={c.id} className={`list-item ${String(c.id)===String(id)?'active':''}`} href={`/chat/${c.id}`}>
               <img src={c.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
               <div style={{flex:1}}>
                 <div className="row between">
@@ -88,17 +128,54 @@ export default function Chat() {
         {!id && <div className="muted">Select a classmate to start chatting.</div>}
         {id && (
           <>
-            <div className="messages">
-              {messages.map(m => (
-                <div key={m.id} className={`bubble ${m.sender_id === user?.id ? 'me' : 'them'}`}>
-                  {m.content}
-                  <div className="timestamp">{new Date(m.created_at).toLocaleTimeString()}</div>
-                </div>
-              ))}
+            <div className="chat-header row gap" style={{alignItems:'center'}}>
+              <img src={otherUser?.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Chat user" />
+              <div>
+                <div className="bold">{otherUser?.name || 'Conversation'}</div>
+                <div className="muted small">{otherUser?.email || ''}</div>
+              </div>
             </div>
-            <form onSubmit={sendMessage} className="row gap">
-              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
-              <button className="btn btn-primary">Send</button>
+
+            <div className="messages" aria-live="polite" ref={messagesRef}>
+              {messages.map((m, idx) => {
+                const dateStr = new Date(m.created_at).toDateString()
+                const prev = messages[idx - 1]
+                const prevDateStr = prev ? new Date(prev.created_at).toDateString() : null
+                const showSeparator = !prev || dateStr !== prevDateStr
+                const mine = m.sender_id === user?.id
+                return (
+                  <div key={m.id}>
+                    {showSeparator && (
+                      <div className="separator" role="separator" aria-label={dateStr}>{dateStr}</div>
+                    )}
+                    <div className={`bubble ${mine ? 'me' : 'them'}`}>
+                      {!mine && (
+                        <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" style={{marginRight:8}} />
+                      )}
+                      <div>
+                        <div>{m.content}</div>
+                        <div className="timestamp">{new Date(m.created_at).toLocaleTimeString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <form onSubmit={sendMessage} className="composer row gap" aria-label="Send message form">
+              <button type="button" className="icon-btn" title="Emoji" aria-label="Open emoji">😊</button>
+              <textarea
+                ref={composerRef}
+                rows={1}
+                value={text}
+                onChange={onComposerChange}
+                onKeyDown={onComposerKeyDown}
+                placeholder="Message..."
+                aria-label="Message text"
+              />
+              <button type="button" className="icon-btn" title="Voice" aria-label="Record voice">🎤</button>
+              <button type="button" className="icon-btn" title="Image" aria-label="Attach image">🖼️</button>
+              <button type="button" className="icon-btn" title="Like" aria-label="Send like">❤</button>
+              <button className="btn btn-primary" aria-label="Send message">➤</button>
             </form>
           </>
         )}

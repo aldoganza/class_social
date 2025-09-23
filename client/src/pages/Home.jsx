@@ -45,7 +45,7 @@ export default function Home() {
   }
 
   return (
-    <div className="page">
+    <div className="page home">
       <div className="card row between">
         <div className="row gap">
           <button className={`btn ${tab === 'following' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('following')}>Following</button>

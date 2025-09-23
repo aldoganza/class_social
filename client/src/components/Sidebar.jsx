@@ -33,12 +33,23 @@ export default function Sidebar() {
     navigate('/login')
   }
 
-  const link = (to, label, extra=null) => (
-    <Link to={to} className={`side-link ${location.pathname.startsWith(to) ? 'active' : ''}`}>
-      <span>{label}</span>
-      {extra}
-    </Link>
-  )
+  const link = (to, label, icon, extraRight=null, options={}) => {
+    const active = location.pathname === to || location.pathname.startsWith(to + '/')
+    const withBadge = options.withBadge
+    return (
+      <Link to={to} className={`side-link ${active ? 'active' : ''}`}>
+        <div className="row gap" style={{alignItems:'center'}}>
+          <span className="icon-wrap">{icon}
+            {withBadge && unread > 0 && (
+              <span className="badge icon-badge">{unread > 99 ? '99+' : unread}</span>
+            )}
+          </span>
+          <span>{label}</span>
+        </div>
+        {extraRight}
+      </Link>
+    )
+  }
 
   return (
     <aside className="sidebar">
@@ -46,10 +57,10 @@ export default function Sidebar() {
         <Link to="/" className="logo">🎓 Classmates</Link>
       </div>
       <nav className="side-nav">
-        {user && link('/', 'Home')}
-        {user && link(`/profile/${user.id}`, 'Profile')}
-        {user && link('/search', 'Search')}
-        {user && link('/chat', 'Messages', unread > 0 ? <span className="badge">{unread > 99 ? '99+' : unread}</span> : null)}
+        {user && link('/', 'Home', <span className="icon">🏠</span>)}
+        {user && link('/search', 'Search', <span className="icon">🔍</span>)}
+        {user && link('/chat', 'Messages', <span className="icon">💬</span>, null, { withBadge: true })}
+        {user && link(`/profile/${user.id}`, 'Profile', <span className="icon">👤</span>)}
       </nav>
       <div className="side-footer">
         {user ? (
