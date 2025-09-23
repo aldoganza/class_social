@@ -53,6 +53,9 @@ input:focus, textarea:focus { border-color: var(--info); }
 .feed { display: flex; flex-direction: column; gap: 12px; }
 .post-card .content { margin: 8px 0; }
 .image-wrapper { border-radius: 12px; overflow: hidden; border: 1px solid #2a2b55; }
+/* Post image container: constrain size but allow scroll */
+.post-card .image-wrapper { position: relative; width: 100%; max-height: 640px; overflow: auto; }
+.post-card .image-wrapper img { width: 100%; height: auto; object-fit: contain; display: block; }
 
 .create-post textarea { width: 100%; }
 .sidebar .list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow: auto; }
@@ -88,6 +91,18 @@ input:focus, textarea:focus { border-color: var(--info); }
 .home .feed,
 .home .card.create-post,
 .home .post-card { max-width: 680px; margin-left: auto; margin-right: auto; }
+
+/* Explore tab: Instagram-like grid */
+.home .feed.grid-feed { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 100%; }
+.home .feed.grid-feed .post-card { max-width: none; margin: 0; padding: 0; border-radius: 10px; overflow: hidden; }
+/* Show image only for consistent square tiles */
+.home .feed.grid-feed .post-card .row,
+.home .feed.grid-feed .post-card .content,
+.home .feed.grid-feed .post-card .comments { display: none !important; }
+.home .feed.grid-feed .post-card .image-wrapper { border: 0; border-radius: 0; }
+@media (min-width: 900px) {
+  .home .feed.grid-feed { grid-template-columns: repeat(3, 1fr); }
+}
 
 /* Responsive */
 @media (max-width: 800px) {
