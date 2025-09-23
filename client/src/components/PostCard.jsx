@@ -9,12 +9,43 @@ export default function PostCard({ post }) {
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState([])
   const [commentText, setCommentText] = useState('')
+  const [shared, setShared] = useState(false)
 
   const loadComments = async () => {
     try {
       const data = await api.get(`/posts/${post.id}/comments`)
       setComments(data)
     } catch (e) { /* ignore */ }
+  }
+
+  const sharePost = async () => {
+    const shareUrl = `${window.location.origin}/profile/${post.user_id}?post=${post.id}`
+    const shareData = {
+      title: `${post.name}'s post`,
+      text: post.content ? String(post.content).slice(0, 120) : 'Check out this post',
+      url: shareUrl,
+    }
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl)
+        setShared(true)
+        setTimeout(() => setShared(false), 1600)
+      } else {
+        // Fallback: create temp input
+        const el = document.createElement('textarea')
+        el.value = shareUrl
+        document.body.appendChild(el)
+        el.select()
+        try { document.execCommand('copy') } catch {}
+        document.body.removeChild(el)
+        setShared(true)
+        setTimeout(() => setShared(false), 1600)
+      }
+    } catch (e) {
+      // no-op on share cancel
+    }
   }
 
   useEffect(() => {
@@ -75,8 +106,14 @@ export default function PostCard({ post }) {
           <button className="btn btn-light" onClick={() => setShowComments((s) => !s)}>
             💬 Comments ({commentsCount})
           </button>
+          <button className="btn btn-light" onClick={sharePost}>
+            🔗 Share
+          </button>
         </div>
-        <div className="muted small">{likes} likes</div>
+        <div className="row gap" style={{alignItems:'center'}}>
+          {shared && <span className="muted small">Link copied</span>}
+          <span className="muted small">{likes} likes</span>
+        </div>
       </div>
 
       {showComments && (

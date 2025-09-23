@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { pool } = require('../lib/db');
+const { createNotification } = require('../lib/notifications');
 const { authRequired } = require('../middleware/auth');
 
 const router = express.Router();
@@ -122,7 +123,14 @@ router.get('/explore', authRequired, async (req, res) => {
 router.post('/:id/like', authRequired, async (req, res) => {
   try {
     const postId = Number(req.params.id);
-    await pool.execute('INSERT IGNORE INTO likes (user_id, post_id) VALUES (?, ?)', [req.user.id, postId]);
+    const [result] = await pool.execute('INSERT IGNORE INTO likes (user_id, post_id) VALUES (?, ?)', [req.user.id, postId]);
+    // Notify post owner on new like (only if insert happened)
+    if (result && result.affectedRows > 0) {
+      const [[owner]] = await pool.query('SELECT user_id FROM posts WHERE id = ?', [postId]);
+      if (owner && owner.user_id) {
+        await createNotification({ userId: owner.user_id, actorId: req.user.id, type: 'like', postId })
+      }
+    }
     // Return new counts
     const [[metrics]] = await pool.query(
       `SELECT 
@@ -187,6 +195,11 @@ router.post('/:id/comments', authRequired, async (req, res) => {
        FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?`,
       [result.insertId]
     );
+    // Notify post owner on comment
+    const [[owner]] = await pool.query('SELECT user_id FROM posts WHERE id = ?', [postId]);
+    if (owner && owner.user_id) {
+      await createNotification({ userId: owner.user_id, actorId: req.user.id, type: 'comment', postId, commentId: result.insertId })
+    }
     res.status(201).json(comment);
   } catch (err) {
     console.error(err);

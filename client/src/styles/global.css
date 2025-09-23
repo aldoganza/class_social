@@ -54,7 +54,7 @@ input:focus, textarea:focus { border-color: var(--info); }
 .post-card .content { margin: 8px 0; }
 .image-wrapper { border-radius: 12px; overflow: hidden; border: 1px solid #2a2b55; }
 /* Post image container: constrain size but allow scroll */
-.post-card .image-wrapper { position: relative; width: 100%; max-height: 640px; overflow: auto; }
+.post-card .image-wrapper { position: relative; width: 100%; max-height: 380px; overflow-y: auto; overflow-x: hidden; }
 .post-card .image-wrapper img { width: 100%; height: auto; object-fit: contain; display: block; }
 
 .create-post textarea { width: 100%; }
@@ -91,6 +91,13 @@ input:focus, textarea:focus { border-color: var(--info); }
 .home .feed,
 .home .card.create-post,
 .home .post-card { max-width: 680px; margin-left: auto; margin-right: auto; }
+
+/* Smaller post width on Home */
+.home .feed,
+.home .post-card { max-width: 360px; }
+
+/* Slightly tighter padding for post cards */
+.post-card { padding: 12px; }
 
 /* Explore tab: Instagram-like grid */
 .home .feed.grid-feed { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 100%; }

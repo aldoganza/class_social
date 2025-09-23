@@ -8,6 +8,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [unread, setUnread] = useState(0)
+  const [notifUnread, setNotifUnread] = useState(0)
 
   useEffect(() => {
     let timer
@@ -28,6 +29,25 @@ export default function Sidebar() {
     }
   }, [user])
 
+  useEffect(() => {
+    let timer
+    async function fetchNotifUnread() {
+      if (!user) { setNotifUnread(0); return }
+      try {
+        const res = await api.get('/notifications/unread/count')
+        setNotifUnread(res.count || 0)
+      } catch {}
+    }
+    fetchNotifUnread()
+    if (user) timer = setInterval(fetchNotifUnread, 10000)
+    const onRefresh = () => { fetchNotifUnread() }
+    window.addEventListener('refresh-notifications', onRefresh)
+    return () => {
+      if (timer) clearInterval(timer)
+      window.removeEventListener('refresh-notifications', onRefresh)
+    }
+  }, [user])
+
   const onLogout = () => {
     logout()
     navigate('/login')
@@ -40,8 +60,11 @@ export default function Sidebar() {
       <Link to={to} className={`side-link ${active ? 'active' : ''}`}>
         <div className="row gap" style={{alignItems:'center'}}>
           <span className="icon-wrap">{icon}
-            {withBadge && unread > 0 && (
+            {withBadge === 'messages' && unread > 0 && (
               <span className="badge icon-badge">{unread > 99 ? '99+' : unread}</span>
+            )}
+            {withBadge === 'notifications' && notifUnread > 0 && (
+              <span className="badge icon-badge">{notifUnread > 99 ? '99+' : notifUnread}</span>
             )}
           </span>
           <span>{label}</span>
@@ -59,7 +82,8 @@ export default function Sidebar() {
       <nav className="side-nav">
         {user && link('/', 'Home', <span className="icon">🏠</span>)}
         {user && link('/search', 'Search', <span className="icon">🔍</span>)}
-        {user && link('/chat', 'Messages', <span className="icon">💬</span>, null, { withBadge: true })}
+        {user && link('/chat', 'Messages', <span className="icon">💬</span>, null, { withBadge: 'messages' })}
+        {user && link('/notifications', 'Notifications', <span className="icon">🔔</span>, null, { withBadge: 'notifications' })}
         {user && link(`/profile/${user.id}`, 'Profile', <span className="icon">👤</span>)}
       </nav>
       <div className="side-footer">

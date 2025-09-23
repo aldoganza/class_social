@@ -12,6 +12,7 @@ const postsRoutes = require('./routes/posts');
 const followsRoutes = require('./routes/follows');
 const messagesRoutes = require('./routes/messages');
 const usersRoutes = require('./routes/users');
+const notificationsRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/follow', followsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Start server after verifying DB
 const PORT = process.env.PORT || 4000;
