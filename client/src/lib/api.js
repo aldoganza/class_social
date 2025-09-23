@@ -16,7 +16,16 @@ async function request(path, options = {}) {
   const contentType = res.headers.get('content-type') || ''
   const data = contentType.includes('application/json') ? await res.json() : await res.text()
   if (!res.ok) {
-    const msg = typeof data === 'string' ? data : data.error || 'Request failed'
+    let msg = 'Request failed'
+    if (typeof data === 'string' && data.trim()) {
+      msg = data
+    } else if (data && typeof data === 'object') {
+      if (data.error) msg = data.error
+      else if (Array.isArray(data.errors) && data.errors.length) {
+        // Express-validator: join messages
+        msg = data.errors.map(e => e.msg || e.message || JSON.stringify(e)).join('\n')
+      }
+    }
     throw new Error(msg)
   }
   return data
