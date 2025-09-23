@@ -6,7 +6,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const fs = require('fs');
 
-const { pool } = require('./lib/db');
+const { pool, ensureDatabaseAndSchema } = require('./lib/db');
 const authRoutes = require('./routes/auth');
 const postsRoutes = require('./routes/posts');
 const followsRoutes = require('./routes/follows');
@@ -46,11 +46,19 @@ app.use('/api/notifications', notificationsRoutes);
 const PORT = process.env.PORT || 4000;
 (async () => {
   try {
+    await ensureDatabaseAndSchema();
     await pool.query('SELECT 1');
     console.log('MySQL connected');
     app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   } catch (err) {
-    console.error('Failed to connect to MySQL:', err.message);
+    console.error('Failed to connect to MySQL:', err && (err.message || err.code || err));
+    console.error('DB config used (no password):', {
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 3306,
+      user: process.env.DB_USER || 'root',
+      database: process.env.DB_NAME || 'classmates_social',
+    });
+    if (err && err.stack) console.error(err.stack);
     process.exit(1);
   }
 })();

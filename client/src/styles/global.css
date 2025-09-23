@@ -121,14 +121,12 @@ input:focus, textarea:focus { border-color: var(--info); }
 }
 
 /* Notification badge: red with subtle pulse */
-.badge { background: #ff3b30; color: #fff; border: 2px solid rgba(255,255,255,0.15); animation: pulse 2s infinite; }
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-  100% { transform: scale(1); }
-}
+/* Badge: show only red number (no rectangle) */
+.badge { background: transparent; color: #ff3b30; border: 0; padding: 0; font-weight: 800; line-height: 1; }
+/* Optional: remove pulse animation for a clean number-only look */
+@keyframes pulse { 0% { } 50% { } 100% { } }
 
 /* Sidebar icons and message badge placement */
-.icon { font-size: 20px; line-height: 1; display: inline-block; }
+.icon { font-size: 20px; line-height: 1; display: inline-block; color: var(--text); }
 .icon-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
-.icon-badge { position: absolute; top: -6px; right: -6px; padding: 0 5px; font-size: 10px; }
+.icon-badge { position: absolute; top: -6px; right: -6px; padding: 0; font-size: 11px; }

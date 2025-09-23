@@ -80,11 +80,11 @@ export default function Sidebar() {
         <Link to="/" className="logo">🎓 Classmates</Link>
       </div>
       <nav className="side-nav">
-        {user && link('/', 'Home', <span className="icon">🏠</span>)}
-        {user && link('/search', 'Search', <span className="icon">🔍</span>)}
-        {user && link('/chat', 'Messages', <span className="icon">💬</span>, null, { withBadge: 'messages' })}
-        {user && link('/notifications', 'Notifications', <span className="icon">🔔</span>, null, { withBadge: 'notifications' })}
-        {user && link(`/profile/${user.id}`, 'Profile', <span className="icon">👤</span>)}
+        {user && link('/', 'Home', <HomeIcon />)}
+        {user && link('/search', 'Search', <SearchIcon />)}
+        {user && link('/chat', 'Messages', <MessageIcon />, null, { withBadge: 'messages' })}
+        {user && link('/notifications', 'Notifications', <HeartIcon />, null, { withBadge: 'notifications' })}
+        {user && link(`/profile/${user.id}`, 'Profile', <UserIcon />)}
       </nav>
       <div className="side-footer">
         {user ? (
@@ -104,5 +104,60 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+  )
+}
+
+function SvgBase({ children }) {
+  return (
+    <span className="icon" aria-hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {children}
+      </svg>
+    </span>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <SvgBase>
+      <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z" />
+    </SvgBase>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <SvgBase>
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </SvgBase>
+  )
+}
+
+function MessageIcon() {
+  return (
+    <SvgBase>
+      {/* Chat bubble outline */}
+      <path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z" />
+      {/* Zigzag mark inside */}
+      <path d="M8.5 12.5l3-2 2 2 2.5-2" />
+    </SvgBase>
+  )
+}
+
+function HeartIcon() {
+  return (
+    <SvgBase>
+      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
+    </SvgBase>
+  )
+}
+
+function UserIcon() {
+  return (
+    <SvgBase>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
+    </SvgBase>
   )
 }
