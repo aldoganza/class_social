@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import PostCard from '../components/PostCard.jsx'
+import StoriesBar from '../components/StoriesBar.jsx'
 
 export default function Home() {
   const [feed, setFeed] = useState([])
@@ -30,6 +31,7 @@ export default function Home() {
 
   return (
     <div className="page home">
+      <StoriesBar />
       <div className="card row between">
         <div className="row gap">
           <button className={`btn ${tab === 'following' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('following')}>Following</button>
