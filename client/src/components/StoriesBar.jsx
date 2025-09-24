@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext.jsx'
 
 export default function StoriesBar() {
+  const { user } = useAuth()
   const [stories, setStories] = useState([])
   const [media, setMedia] = useState(null)
   const [audio, setAudio] = useState(null)
@@ -14,6 +16,16 @@ export default function StoriesBar() {
       const data = await api.get('/stories')
       setStories(data)
     } catch (e) { setError(e.message) }
+  }
+
+  const deleteStory = async (storyId) => {
+    try {
+      await api.del(`/stories/${storyId}`)
+      setShowPlayer(null)
+      await load()
+    } catch (e) {
+      setError(e.message)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -76,7 +88,12 @@ export default function StoriesBar() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="row between" style={{marginBottom:8}}>
               <div className="bold">{showPlayer.name}</div>
-              <button className="btn btn-light" onClick={() => setShowPlayer(null)}>Close</button>
+              <div className="row gap">
+                {user && showPlayer.user_id === user.id && (
+                  <button className="btn btn-danger" onClick={() => deleteStory(showPlayer.id)}>Delete</button>
+                )}
+                <button className="btn btn-light" onClick={() => setShowPlayer(null)}>Close</button>
+              </div>
             </div>
             {showPlayer.media_type === 'video' ? (
               <video src={showPlayer.media_url} controls autoPlay style={{maxWidth:'90vw', maxHeight:'80vh'}} />

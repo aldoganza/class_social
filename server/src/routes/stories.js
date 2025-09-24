@@ -18,6 +18,24 @@ const storage = multer.diskStorage({
     cb(null, unique + ext)
   }
 })
+
+// DELETE /api/stories/:id - delete own story
+router.delete('/:id', authRequired, async (req, res) => {
+  try {
+    await ensureStoriesTable()
+    const storyId = Number(req.params.id)
+    // Verify ownership
+    const [rows] = await pool.execute('SELECT user_id FROM stories WHERE id = ?', [storyId])
+    if (rows.length === 0) return res.status(404).json({ error: 'Story not found' })
+    if (rows[0].user_id !== req.user.id) return res.status(403).json({ error: 'Not allowed' })
+
+    await pool.execute('DELETE FROM stories WHERE id = ?', [storyId])
+    res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
 const upload = multer({ storage })
 
 async function ensureStoriesTable() {
