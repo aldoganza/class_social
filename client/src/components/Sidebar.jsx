@@ -83,6 +83,7 @@ export default function Sidebar() {
         {user && link('/', 'Home', <HomeIcon />)}
         {user && link('/search', 'Search', <SearchIcon />)}
         {user && link('/chat', 'Messages', <MessageIcon />, null, { withBadge: 'messages' })}
+        {user && link('/create', 'Create', <CreateIcon />)}
         {user && link('/notifications', 'Notifications', <HeartIcon />, null, { withBadge: 'notifications' })}
         {user && link(`/profile/${user.id}`, 'Profile', <UserIcon />)}
       </nav>
@@ -158,6 +159,16 @@ function UserIcon() {
     <SvgBase>
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
+    </SvgBase>
+  )
+}
+
+function CreateIcon() {
+  return (
+    <SvgBase>
+      <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+      <line x1="12" y1="7" x2="12" y2="17" />
+      <line x1="7" y1="12" x2="17" y2="12" />
     </SvgBase>
   )
 }

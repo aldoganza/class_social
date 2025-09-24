@@ -6,6 +6,7 @@ import Profile from './pages/Profile.jsx'
 import Chat from './pages/Chat.jsx'
 import Search from './pages/Search.jsx'
 import Notifications from './pages/Notifications.jsx'
+import Create from './pages/Create.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 
@@ -72,6 +73,15 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/create"
+                element={
+                  <ProtectedRoute>
+                    <Create />
                   </ProtectedRoute>
                 }
               />

@@ -6,10 +6,7 @@ export default function StoriesBar() {
   const { user } = useAuth()
   const [stories, setStories] = useState([])
   const [grouped, setGrouped] = useState([]) // [{ user_id, name, profile_pic, items: [stories...] }]
-  const [media, setMedia] = useState(null)
-  const [audio, setAudio] = useState(null)
   const [error, setError] = useState('')
-  const [uploading, setUploading] = useState(false)
   const [showPlayer, setShowPlayer] = useState(null) // story to show
 
   const load = async () => {
@@ -38,35 +35,7 @@ export default function StoriesBar() {
 
   useEffect(() => { load() }, [])
 
-  const onFile = (e) => {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setMedia(f)
-  }
-
-  const onAudio = (e) => {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setAudio(f)
-  }
-
-  const upload = async () => {
-    if (!media) return
-    setUploading(true)
-    try {
-      const fd = new FormData()
-      fd.append('media', media)
-      if (audio) fd.append('audio', audio)
-      await api.postForm('/stories', fd)
-      setMedia(null)
-      setAudio(null)
-      await load()
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setUploading(false)
-    }
-  }
+  // Creation moved to /create page
 
   const openUserStories = (userGroup) => {
     setShowPlayer({ group: userGroup, index: 0 })
@@ -95,15 +64,7 @@ export default function StoriesBar() {
   return (
     <div className="stories-bar card">
       {error && <div className="error">{error}</div>}
-      <div className="row gap" style={{alignItems:'center', justifyContent:'space-between'}}>
-        <div className="row gap" style={{alignItems:'center'}}>
-          <label className="btn btn-light" htmlFor="story-media">Add Story</label>
-          <input id="story-media" type="file" accept="image/*,video/*" onChange={onFile} style={{display:'none'}} />
-          <label className="btn btn-light" htmlFor="story-audio">Audio (optional)</label>
-          <input id="story-audio" type="file" accept="audio/*" onChange={onAudio} style={{display:'none'}} />
-          <button className="btn btn-primary" onClick={upload} disabled={!media || uploading}>{uploading ? 'Uploading...' : 'Post Story'}</button>
-        </div>
-      </div>
+      {/* Story creation moved to Sidebar -> /create */}
 
       <div className="stories-strip">
         {grouped.map(g => (
