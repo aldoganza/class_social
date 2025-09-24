@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 export default function StoriesBar() {
   const { user } = useAuth()
   const [stories, setStories] = useState([])
+  const [grouped, setGrouped] = useState([]) // [{ user_id, name, profile_pic, items: [stories...] }]
   const [media, setMedia] = useState(null)
   const [audio, setAudio] = useState(null)
   const [error, setError] = useState('')
@@ -15,6 +16,13 @@ export default function StoriesBar() {
     try {
       const data = await api.get('/stories')
       setStories(data)
+      // group by user
+      const byUser = {}
+      for (const s of data) {
+        if (!byUser[s.user_id]) byUser[s.user_id] = { user_id: s.user_id, name: s.name, profile_pic: s.profile_pic, items: [] }
+        byUser[s.user_id].items.push(s)
+      }
+      setGrouped(Object.values(byUser))
     } catch (e) { setError(e.message) }
   }
 
@@ -60,6 +68,30 @@ export default function StoriesBar() {
     }
   }
 
+  const openUserStories = (userGroup) => {
+    setShowPlayer({ group: userGroup, index: 0 })
+  }
+
+  const nextStory = () => {
+    setShowPlayer((sp) => {
+      if (!sp) return sp
+      const next = sp.index + 1
+      if (next < sp.group.items.length) return { ...sp, index: next }
+      return null // close when finished
+    })
+  }
+
+  const prevStory = () => {
+    setShowPlayer((sp) => {
+      if (!sp) return sp
+      const prev = sp.index - 1
+      if (prev >= 0) return { ...sp, index: prev }
+      return sp
+    })
+  }
+
+  const currentStory = showPlayer ? showPlayer.group.items[showPlayer.index] : null
+
   return (
     <div className="stories-bar card">
       {error && <div className="error">{error}</div>}
@@ -73,36 +105,46 @@ export default function StoriesBar() {
         </div>
       </div>
 
-      <div className="stories-strip" style={{display:'flex', gap:10, overflowX:'auto', marginTop:10, paddingBottom:6}}>
-        {stories.map(s => (
-          <button key={s.id} className="story" onClick={() => setShowPlayer(s)}>
-            <img src={s.user_id === s.user_id ? (s.media_type==='image'? s.media_url : (s.profile_pic||'https://via.placeholder.com/64')) : s.media_url} alt="story" />
-            <span className="small bold" title={s.name}>{s.name?.slice(0,14)}</span>
+      <div className="stories-strip">
+        {grouped.map(g => (
+          <button key={g.user_id} className="story" onClick={() => openUserStories(g)}>
+            <span className="story-ring">
+              <img src={g.profile_pic || 'https://via.placeholder.com/64'} alt={g.name} />
+            </span>
+            <span className="small bold" title={g.name}>{(g.name || '').slice(0,14)}</span>
           </button>
         ))}
-        {stories.length === 0 && <div className="muted small">No stories yet.</div>}
+        {grouped.length === 0 && <div className="muted small">No stories yet.</div>}
       </div>
 
-      {showPlayer && (
+      {currentStory && (
         <div className="modal" onClick={() => setShowPlayer(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="row between" style={{marginBottom:8}}>
-              <div className="bold">{showPlayer.name}</div>
+              <div className="row gap" style={{alignItems:'center'}}>
+                <span className="story-ring sm"><img src={showPlayer.group.profile_pic || 'https://via.placeholder.com/40'} /></span>
+                <div className="bold">{showPlayer.group.name}</div>
+              </div>
               <div className="row gap">
-                {user && showPlayer.user_id === user.id && (
-                  <button className="btn btn-danger" onClick={() => deleteStory(showPlayer.id)}>Delete</button>
+                {user && currentStory.user_id === user.id && (
+                  <button className="btn btn-danger" onClick={() => deleteStory(currentStory.id)}>Delete</button>
                 )}
                 <button className="btn btn-light" onClick={() => setShowPlayer(null)}>Close</button>
               </div>
             </div>
-            {showPlayer.media_type === 'video' ? (
-              <video src={showPlayer.media_url} controls autoPlay style={{maxWidth:'90vw', maxHeight:'80vh'}} />
+            {currentStory.media_type === 'video' ? (
+              <video src={currentStory.media_url} controls autoPlay style={{maxWidth:'90vw', maxHeight:'80vh'}} />
             ) : (
               <div>
-                <img src={showPlayer.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
-                {showPlayer.audio_url && <audio src={showPlayer.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
+                <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
+                {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
               </div>
             )}
+            <div className="row between" style={{marginTop:8}}>
+              <button className="btn btn-light" onClick={prevStory} disabled={showPlayer.index===0}>Prev</button>
+              <div className="muted small">{showPlayer.index+1} / {showPlayer.group.items.length}</div>
+              <button className="btn btn-light" onClick={nextStory} disabled={showPlayer.index===showPlayer.group.items.length-1}>Next</button>
+            </div>
           </div>
         </div>
       )}
