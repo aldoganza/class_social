@@ -89,6 +89,14 @@ input:focus, textarea:focus { border-color: var(--info); }
 .input-compact { background: var(--bg-soft); border: 1px solid rgba(255,255,255,0.08); color: var(--text); padding: 6px 10px; border-radius: 10px; outline: none; }
 .input-compact:focus { border-color: var(--info); }
 
+/* Story media overlays */
+.story-media { position: relative; display: inline-block; }
+.media-overlay { position: absolute; top: 8px; display: flex; align-items: center; gap: 6px; }
+.media-overlay.left { left: 8px; }
+.media-overlay.right { right: 8px; }
+.pill { background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 2px 8px; display: inline-flex; align-items: center; }
+.pill.small { font-size: 12px; line-height: 1; }
+
 /* Profile posts grid */
 .grid-posts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .grid-post { display: block; }

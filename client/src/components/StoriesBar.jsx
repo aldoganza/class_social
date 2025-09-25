@@ -153,22 +153,34 @@ export default function StoriesBar() {
                 {user && currentStory.user_id === user.id && (
                   <button className="btn btn-danger" onClick={() => deleteStory(currentStory.id)}>Delete</button>
                 )}
-                <button className="btn btn-light" onClick={() => setShowPlayer(null)}>Close</button>
+                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setShowPlayer(null)}>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
               </div>
             </div>
-            {currentStory.media_type === 'video' ? (
-              <video src={currentStory.media_url} controls autoPlay style={{maxWidth:'90vw', maxHeight:'80vh'}} />
-            ) : (
-              <div>
-                <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
-                {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
-              </div>
-            )}
-            {/* Actions: like and views (owner-only for viewers list) */}
-            <div className="story-actions row between" style={{marginTop:8, alignItems:'center'}}>
-              <div className="row gap" style={{alignItems:'center'}}>
+            <div className="story-media">
+              {currentStory.media_type === 'video' ? (
+                <video
+                  src={currentStory.media_url}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  style={{maxWidth:'90vw', maxHeight:'80vh'}}
+                />
+              ) : (
+                <div>
+                  <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
+                  {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
+                </div>
+              )}
+              {/* Overlays: like (left) and views (right for owner) */}
+              <div className="media-overlay left">
                 <button className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`} onClick={toggleLike} disabled={likeBusy} aria-label="Like story">
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {currentStory.liked_by_me ? (
                       <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
                     ) : (
@@ -176,17 +188,20 @@ export default function StoriesBar() {
                     )}
                   </svg>
                 </button>
-                <span className="small bold" title={`${Number(currentStory.likes_count||0)} likes`}>{Number(currentStory.likes_count || 0)}</span>
+                <span className="pill small">{Number(currentStory.likes_count || 0)}</span>
               </div>
-              {user && currentStory.user_id === user.id ? (
-                <div className="row gap" style={{alignItems:'center'}}>
-                  <span className="muted small" title="Views">{Number(currentStory.views_count || 0)}</span>
-                  <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
+              {user && currentStory.user_id === user.id && (
+                <div className="media-overlay right">
+                  <span className="pill small" title="Views">{Number(currentStory.views_count || 0)}</span>
                 </div>
-              ) : (
-                <div />
               )}
             </div>
+            {/* Owner-only viewers button below media */}
+            {user && currentStory.user_id === user.id && (
+              <div className="row end" style={{marginTop:6}}>
+                <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
+              </div>
+            )}
 
             {/* Reply box (small input) */}
             <div className="row gap" style={{marginTop:6}}>
