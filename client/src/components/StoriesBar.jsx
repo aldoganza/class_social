@@ -12,6 +12,25 @@ export default function StoriesBar() {
   const [replyText, setReplyText] = useState('')
   const [viewers, setViewers] = useState([])
   const [viewersOpen, setViewersOpen] = useState(false)
+  const [isMuted, setIsMuted] = useState(true)
+  const [progress, setProgress] = useState(0) // 0..1 for current segment
+
+  // Simple time-ago helper
+  const timeAgo = (ts) => {
+    try {
+      const d = new Date(ts)
+      const diff = Math.max(0, Date.now() - d.getTime())
+      const mins = Math.floor(diff / 60000)
+      if (mins < 1) return 'now'
+      if (mins < 60) return `${mins}m`
+      const hrs = Math.floor(mins / 60)
+      if (hrs < 24) return `${hrs}h`
+      const days = Math.floor(hrs / 24)
+      return `${days}d`
+    } catch {
+      return ''
+    }
+  }
 
   const load = async () => {
     try {
@@ -82,6 +101,26 @@ export default function StoriesBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPlayer?.index])
 
+  // Auto-advance with progress bar (~5 seconds per story)
+  useEffect(() => {
+    if (!currentStory) return
+    setProgress(0)
+    const DURATION = currentStory.media_type === 'video' ? 7000 : 5000
+    const startedAt = Date.now()
+    const tick = () => {
+      const p = Math.min(1, (Date.now() - startedAt) / DURATION)
+      setProgress(p)
+      if (p >= 1) {
+        nextStory()
+      } else {
+        raf = requestAnimationFrame(tick)
+      }
+    }
+    let raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStory?.id])
+
   const toggleLike = async () => {
     if (!currentStory || likeBusy) return
     setLikeBusy(true)
@@ -143,30 +182,51 @@ export default function StoriesBar() {
 
       {currentStory && (
         <div className="modal" onClick={() => setShowPlayer(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="row between" style={{marginBottom:8}}>
-              <div className="row gap" style={{alignItems:'center'}}>
-                <span className="story-ring sm"><img src={showPlayer.group.profile_pic || 'https://via.placeholder.com/40'} /></span>
-                <div className="bold">{showPlayer.group.name}</div>
+          <div className="modal-content story-frame" onClick={(e) => e.stopPropagation()}>
+            {/* Top overlay bar with progress segments */}
+            {showPlayer && (
+              <div className="story-top">
+                <div className="story-progress">
+                  {showPlayer.group.items.map((_, i) => (
+                    <span key={i} className="seg">
+                      <span className="fill" style={{width: i < showPlayer.index ? '100%' : i === showPlayer.index ? `${Math.round(progress*100)}%` : '0%'}} />
+                    </span>
+                  ))}
+                </div>
+                <div className="row between" style={{alignItems:'center'}}>
+                  <div className="row gap" style={{alignItems:'center'}}>
+                    <span className="story-ring sm"><img src={showPlayer.group.profile_pic || 'https://via.placeholder.com/40'} /></span>
+                    <div className="bold small">{showPlayer.group.name}</div>
+                    {currentStory?.created_at && (
+                      <div className="muted tiny">{timeAgo(currentStory.created_at)}</div>
+                    )}
+                  </div>
+                  <div className="row gap">
+                    {/* Mute toggle */}
+                    <button className="icon-btn" title={isMuted? 'Unmute' : 'Mute'} aria-label="Toggle audio" onClick={() => setIsMuted(m => !m)}>
+                      {isMuted ? (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15 9a3 3 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/></svg>
+                      )}
+                    </button>
+                    {/* Menu placeholder */}
+                    <button className="icon-btn" title="More" aria-label="More options">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+                    </button>
+                    <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setShowPlayer(null)}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="row gap">
-                {user && currentStory.user_id === user.id && (
-                  <button className="btn btn-danger" onClick={() => deleteStory(currentStory.id)}>Delete</button>
-                )}
-                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setShowPlayer(null)}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            )}
             <div className="story-media">
               {currentStory.media_type === 'video' ? (
                 <video
                   src={currentStory.media_url}
                   autoPlay
-                  muted
+                  muted={isMuted}
                   loop
                   playsInline
                   style={{maxWidth:'90vw', maxHeight:'80vh'}}
@@ -174,22 +234,10 @@ export default function StoriesBar() {
               ) : (
                 <div>
                   <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
-                  {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
+                  {currentStory.audio_url && <audio src={currentStory.audio_url} autoPlay controls={false} style={{display:'none'}} />}
                 </div>
               )}
-              {/* Overlays: like (left) and views (right for owner) */}
-              <div className="media-overlay left">
-                <button className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`} onClick={toggleLike} disabled={likeBusy} aria-label="Like story">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {currentStory.liked_by_me ? (
-                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
-                    ) : (
-                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
-                    )}
-                  </svg>
-                </button>
-                <span className="pill small">{Number(currentStory.likes_count || 0)}</span>
-              </div>
+              {/* Removed top like overlay per request */}
               {user && currentStory.user_id === user.id && (
                 <div className="media-overlay right">
                   <span className="pill small" title="Views">{Number(currentStory.views_count || 0)}</span>
@@ -203,18 +251,22 @@ export default function StoriesBar() {
               </div>
             )}
 
-            {/* Reply box (small input) */}
-            <div className="row gap" style={{marginTop:6}}>
+            {/* Bottom reply overlay */}
+            <div className="story-bottom">
               <input
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Reply to story..."
+                placeholder={`Reply to ${showPlayer?.group?.name || 'story'}...`}
                 aria-label="Reply to story"
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
-                className="input-compact"
-                style={{flex:1}}
+                className="reply-input"
               />
-              <button className="btn btn-primary" onClick={sendReply}>Send</button>
+              <button className="icon-btn" title="Send" aria-label="Send reply" onClick={sendReply}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+              </button>
+              <button className="icon-btn" title="Quick like" aria-label="Quick like" onClick={toggleLike}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" /></svg>
+              </button>
             </div>
 
             {/* Viewers list for owner */}
