@@ -178,12 +178,14 @@ export default function StoriesBar() {
                 </button>
                 <span className="small bold" title={`${Number(currentStory.likes_count||0)} likes`}>{Number(currentStory.likes_count || 0)}</span>
               </div>
-              <div className="row gap" style={{alignItems:'center'}}>
-                <span className="muted small" title="Views">{Number(currentStory.views_count || 0)}</span>
-                {user && currentStory.user_id === user.id && (
+              {user && currentStory.user_id === user.id ? (
+                <div className="row gap" style={{alignItems:'center'}}>
+                  <span className="muted small" title="Views">{Number(currentStory.views_count || 0)}</span>
                   <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div />
+              )}
             </div>
 
             {/* Reply box (small input) */}
