@@ -79,9 +79,9 @@ input:focus, textarea:focus { border-color: var(--info); }
 .stories-bar { padding: 10px; }
 .stories-strip { display: flex; gap: 14px; overflow-x: auto; padding: 6px 2px; }
 .story { background: transparent; border: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
-.story-ring { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; padding: 2px; background: #38bdf8; }
+.story-ring { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; padding: 3px; background: transparent; border: 3px solid #38bdf8; box-sizing: content-box; }
 .story-ring.sm { width: 36px; height: 36px; }
-.story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #000; object-fit: cover; }
+.story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #0b0c20; object-fit: cover; display: block; }
 .story .small.bold { max-width: 72px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 
 /* Profile posts grid */

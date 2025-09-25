@@ -55,6 +55,31 @@ async function ensureStoriesTable() {
   `)
 }
 
+async function ensureStoryExtras() {
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS stories_likes (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      story_id INT NOT NULL,
+      user_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_story_like (story_id, user_id),
+      FOREIGN KEY (story_id) REFERENCES stories(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS stories_views (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      story_id INT NOT NULL,
+      user_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_story_view (story_id, user_id),
+      FOREIGN KEY (story_id) REFERENCES stories(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+}
+
 // POST /api/stories - create a story (image or video, optional audio for image)
 router.post('/', authRequired, upload.fields([{ name: 'media', maxCount: 1 }, { name: 'audio', maxCount: 1 }]), async (req, res) => {
   try {
@@ -93,16 +118,85 @@ router.post('/', authRequired, upload.fields([{ name: 'media', maxCount: 1 }, { 
 // GET /api/stories - list recent stories (self + followed) not expired
 router.get('/', authRequired, async (req, res) => {
   try {
-    await ensureStoriesTable()
+    await ensureStoriesTable(); await ensureStoryExtras()
     const [rows] = await pool.execute(
-      `SELECT s.*, u.name, u.profile_pic
+      `SELECT s.*, u.name, u.profile_pic,
+              (SELECT COUNT(*) FROM stories_likes sl WHERE sl.story_id = s.id) AS likes_count,
+              (SELECT COUNT(*) FROM stories_views sv WHERE sv.story_id = s.id) AS views_count,
+              EXISTS(SELECT 1 FROM stories_likes sl2 WHERE sl2.story_id = s.id AND sl2.user_id = ?) AS liked_by_me
          FROM stories s
          JOIN users u ON u.id = s.user_id
         WHERE s.expires_at > NOW()
           AND (s.user_id = ? OR s.user_id IN (SELECT followed_id FROM follows WHERE follower_id = ?))
         ORDER BY s.created_at DESC
         LIMIT 200`,
-      [req.user.id, req.user.id]
+      [req.user.id, req.user.id, req.user.id]
+    )
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// POST /api/stories/:id/like - like story
+router.post('/:id/like', authRequired, async (req, res) => {
+  try {
+    await ensureStoriesTable(); await ensureStoryExtras()
+    const storyId = Number(req.params.id)
+    await pool.execute('INSERT IGNORE INTO stories_likes (story_id, user_id) VALUES (?, ?)', [storyId, req.user.id])
+    const [[m]] = await pool.query('SELECT COUNT(*) AS likes_count FROM stories_likes WHERE story_id = ?', [storyId])
+    res.json({ liked: true, likes_count: Number(m.likes_count || 0) })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// DELETE /api/stories/:id/like - unlike story
+router.delete('/:id/like', authRequired, async (req, res) => {
+  try {
+    await ensureStoryExtras()
+    const storyId = Number(req.params.id)
+    await pool.execute('DELETE FROM stories_likes WHERE story_id = ? AND user_id = ?', [storyId, req.user.id])
+    const [[m]] = await pool.query('SELECT COUNT(*) AS likes_count FROM stories_likes WHERE story_id = ?', [storyId])
+    res.json({ liked: false, likes_count: Number(m.likes_count || 0) })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// POST /api/stories/:id/view - mark as viewed
+router.post('/:id/view', authRequired, async (req, res) => {
+  try {
+    await ensureStoryExtras()
+    const storyId = Number(req.params.id)
+    await pool.execute('INSERT IGNORE INTO stories_views (story_id, user_id) VALUES (?, ?)', [storyId, req.user.id])
+    const [[m]] = await pool.query('SELECT COUNT(*) AS views_count FROM stories_views WHERE story_id = ?', [storyId])
+    res.json({ success: true, views_count: Number(m.views_count || 0) })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// GET /api/stories/:id/viewers - list viewers
+router.get('/:id/viewers', authRequired, async (req, res) => {
+  try {
+    await ensureStoryExtras()
+    const storyId = Number(req.params.id)
+    // Only owner can see full viewer list
+    const [[owner]] = await pool.query('SELECT user_id FROM stories WHERE id = ?', [storyId])
+    if (!owner) return res.status(404).json({ error: 'Story not found' })
+    if (owner.user_id !== req.user.id) return res.status(403).json({ error: 'Not allowed' })
+    const [rows] = await pool.query(
+      `SELECT u.id, u.name, u.profile_pic, sv.created_at
+         FROM stories_views sv JOIN users u ON u.id = sv.user_id
+        WHERE sv.story_id = ?
+        ORDER BY sv.created_at DESC
+        LIMIT 200`,
+      [storyId]
     )
     res.json(rows)
   } catch (err) {
