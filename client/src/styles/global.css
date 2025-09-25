@@ -84,6 +84,11 @@ input:focus, textarea:focus { border-color: var(--info); }
 .story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #0b0c20; object-fit: cover; display: block; }
 .story .small.bold { max-width: 72px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 
+/* Story modal tweaks */
+.story-actions .icon-btn { padding: 4px; }
+.input-compact { background: var(--bg-soft); border: 1px solid rgba(255,255,255,0.08); color: var(--text); padding: 6px 10px; border-radius: 10px; outline: none; }
+.input-compact:focus { border-color: var(--info); }
+
 /* Profile posts grid */
 .grid-posts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .grid-post { display: block; }

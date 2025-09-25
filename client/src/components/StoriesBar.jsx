@@ -164,10 +164,10 @@ export default function StoriesBar() {
                 {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
               </div>
             )}
-            {/* Actions: like, reply, views */}
-            <div className="row between" style={{marginTop:10, alignItems:'center'}}>
+            {/* Actions: like and views (owner-only for viewers list) */}
+            <div className="story-actions row between" style={{marginTop:8, alignItems:'center'}}>
               <div className="row gap" style={{alignItems:'center'}}>
-                <button className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`} onClick={toggleLike} disabled={likeBusy}>
+                <button className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`} onClick={toggleLike} disabled={likeBusy} aria-label="Like story">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {currentStory.liked_by_me ? (
                       <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
@@ -176,22 +176,25 @@ export default function StoriesBar() {
                     )}
                   </svg>
                 </button>
-                <span className="small bold">{Number(currentStory.likes_count || 0)} likes</span>
+                <span className="small bold" title={`${Number(currentStory.likes_count||0)} likes`}>{Number(currentStory.likes_count || 0)}</span>
               </div>
               <div className="row gap" style={{alignItems:'center'}}>
-                <span className="muted small">{Number(currentStory.views_count || 0)} views</span>
+                <span className="muted small" title="Views">{Number(currentStory.views_count || 0)}</span>
                 {user && currentStory.user_id === user.id && (
-                  <button className="btn btn-light" onClick={openViewers}>Viewers</button>
+                  <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
                 )}
               </div>
             </div>
 
-            {/* Reply box */}
-            <div className="row gap" style={{marginTop:8}}>
+            {/* Reply box (small input) */}
+            <div className="row gap" style={{marginTop:6}}>
               <input
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Reply to story..."
+                aria-label="Reply to story"
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
+                className="input-compact"
                 style={{flex:1}}
               />
               <button className="btn btn-primary" onClick={sendReply}>Send</button>
