@@ -8,6 +8,10 @@ export default function StoriesBar() {
   const [grouped, setGrouped] = useState([]) // [{ user_id, name, profile_pic, items: [stories...] }]
   const [error, setError] = useState('')
   const [showPlayer, setShowPlayer] = useState(null) // story to show
+  const [likeBusy, setLikeBusy] = useState(false)
+  const [replyText, setReplyText] = useState('')
+  const [viewers, setViewers] = useState([])
+  const [viewersOpen, setViewersOpen] = useState(false)
 
   const load = async () => {
     try {
@@ -61,6 +65,65 @@ export default function StoriesBar() {
 
   const currentStory = showPlayer ? showPlayer.group.items[showPlayer.index] : null
 
+  // Mark view when a story becomes current
+  useEffect(() => {
+    const markView = async () => {
+      try {
+        if (currentStory) {
+          const res = await api.post(`/stories/${currentStory.id}/view`, {})
+          // update views_count locally
+          const copy = { ...currentStory, views_count: res.views_count }
+          showPlayer.group.items[showPlayer.index] = copy
+          setShowPlayer({ ...showPlayer })
+        }
+      } catch {}
+    }
+    markView()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPlayer?.index])
+
+  const toggleLike = async () => {
+    if (!currentStory || likeBusy) return
+    setLikeBusy(true)
+    try {
+      if (currentStory.liked_by_me) {
+        const res = await api.del(`/stories/${currentStory.id}/like`)
+        currentStory.liked_by_me = false
+        currentStory.likes_count = res.likes_count
+      } else {
+        const res = await api.post(`/stories/${currentStory.id}/like`, {})
+        currentStory.liked_by_me = true
+        currentStory.likes_count = res.likes_count
+      }
+      setShowPlayer({ ...showPlayer })
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLikeBusy(false)
+    }
+  }
+
+  const sendReply = async () => {
+    try {
+      if (!replyText.trim()) return
+      const ownerId = showPlayer.group.user_id
+      await api.post(`/messages/${ownerId}`, { content: replyText.trim() })
+      setReplyText('')
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  const openViewers = async () => {
+    try {
+      const list = await api.get(`/stories/${currentStory.id}/viewers`)
+      setViewers(list)
+      setViewersOpen(true)
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   return (
     <div className="stories-bar card">
       {error && <div className="error">{error}</div>}
@@ -99,6 +162,57 @@ export default function StoriesBar() {
               <div>
                 <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
                 {currentStory.audio_url && <audio src={currentStory.audio_url} controls autoPlay style={{width:'100%', marginTop:8}} />}
+              </div>
+            )}
+            {/* Actions: like, reply, views */}
+            <div className="row between" style={{marginTop:10, alignItems:'center'}}>
+              <div className="row gap" style={{alignItems:'center'}}>
+                <button className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`} onClick={toggleLike} disabled={likeBusy}>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {currentStory.liked_by_me ? (
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
+                    ) : (
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
+                    )}
+                  </svg>
+                </button>
+                <span className="small bold">{Number(currentStory.likes_count || 0)} likes</span>
+              </div>
+              <div className="row gap" style={{alignItems:'center'}}>
+                <span className="muted small">{Number(currentStory.views_count || 0)} views</span>
+                {user && currentStory.user_id === user.id && (
+                  <button className="btn btn-light" onClick={openViewers}>Viewers</button>
+                )}
+              </div>
+            </div>
+
+            {/* Reply box */}
+            <div className="row gap" style={{marginTop:8}}>
+              <input
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Reply to story..."
+                style={{flex:1}}
+              />
+              <button className="btn btn-primary" onClick={sendReply}>Send</button>
+            </div>
+
+            {/* Viewers list for owner */}
+            {viewersOpen && user && currentStory.user_id === user.id && (
+              <div className="card" style={{marginTop:10}}>
+                <div className="row between" style={{marginBottom:6}}>
+                  <div className="bold">Viewers ({viewers.length})</div>
+                  <button className="btn btn-light" onClick={() => setViewersOpen(false)}>Close</button>
+                </div>
+                <div className="list" style={{maxHeight:220, overflow:'auto'}}>
+                  {viewers.map(v => (
+                    <div key={v.id} className="list-item">
+                      <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
+                      <div className="bold small">{v.name}</div>
+                    </div>
+                  ))}
+                  {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}
+                </div>
               </div>
             )}
             <div className="row between" style={{marginTop:8}}>
