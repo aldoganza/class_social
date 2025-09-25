@@ -14,6 +14,8 @@ export default function StoriesBar() {
   const [viewersOpen, setViewersOpen] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [progress, setProgress] = useState(0) // 0..1 for current segment
+  const [sending, setSending] = useState(false)
+  const [toast, setToast] = useState('')
 
   // Simple time-ago helper
   const timeAgo = (ts) => {
@@ -144,13 +146,24 @@ export default function StoriesBar() {
 
   const sendReply = async () => {
     try {
-      if (!replyText.trim()) return
+      if (!currentStory) return
+      if (sending) return
+      setSending(true)
+      const text = replyText.trim()
       const ownerId = showPlayer.group.user_id
-      await api.post(`/messages/${ownerId}`, { content: replyText.trim() })
+      if (text) {
+        await api.post(`/messages/${ownerId}`, { content: text })
+        setToast('Reply sent')
+      } else {
+        const link = `${window.location.origin}/profile/${currentStory.user_id}?story=${currentStory.id}`
+        await api.post(`/messages/${ownerId}`, { content: `Replied to your story: ${link}` })
+        setToast('Story sent')
+      }
       setReplyText('')
+      setTimeout(() => setToast(''), 1500)
     } catch (e) {
       setError(e.message)
-    }
+    } finally { setSending(false) }
   }
 
   const openViewers = async () => {
@@ -261,13 +274,17 @@ export default function StoriesBar() {
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
                 className="reply-input"
               />
-              <button className="icon-btn" title="Send" aria-label="Send reply" onClick={sendReply}>
+              <button className="icon-btn" title="Send" aria-label="Send reply" onClick={sendReply} disabled={sending}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
               </button>
               <button className="icon-btn" title="Quick like" aria-label="Quick like" onClick={toggleLike}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" /></svg>
               </button>
             </div>
+
+            {toast && (
+              <div className="toast small">{toast}</div>
+            )}
 
             {/* Viewers list for owner */}
             {viewersOpen && user && currentStory.user_id === user.id && (
