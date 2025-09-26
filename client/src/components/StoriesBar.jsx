@@ -103,11 +103,11 @@ export default function StoriesBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPlayer?.index])
 
-  // Auto-advance with progress bar (~5 seconds per story)
+  // Auto-advance with progress bar (longer per request)
   useEffect(() => {
     if (!currentStory) return
     setProgress(0)
-    const DURATION = currentStory.media_type === 'video' ? 7000 : 5000
+    const DURATION = currentStory.media_type === 'video' ? 15000 : 12000
     const startedAt = Date.now()
     const tick = () => {
       const p = Math.min(1, (Date.now() - startedAt) / DURATION)
@@ -256,6 +256,18 @@ export default function StoriesBar() {
                   <span className="pill small" title="Views">{Number(currentStory.views_count || 0)}</span>
                 </div>
               )}
+
+              {/* Media navigation arrows */}
+              <button className="media-nav left" aria-label="Previous" onClick={prevStory} disabled={showPlayer.index===0}>
+                <span className="nav-btn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </span>
+              </button>
+              <button className="media-nav right" aria-label="Next" onClick={nextStory} disabled={showPlayer.index===showPlayer.group.items.length-1}>
+                <span className="nav-btn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+              </button>
             </div>
             {/* Owner-only viewers button below media */}
             {user && currentStory.user_id === user.id && (
