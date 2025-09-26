@@ -177,13 +177,13 @@ input:focus, textarea:focus { border-color: var(--info); }
 /* Notification badge: red with subtle pulse */
 /* Badge: white number on red circle/pill (Instagram-like) */
 .badge {
-  background: #ff3b30;
-  color: #fff;
+  background: #38bdf8; /* sky blue */
+  color: #fff; /* white number */
   border: 2px solid rgba(0,0,0,0.2);
   padding: 0 5px;
   min-width: 16px;
   height: 16px;
-  border-radius: 999px;
+  border-radius: 999px; /* circle/pill */
   display: inline-grid;
   place-items: center;
   font-weight: 800;
