@@ -110,6 +110,12 @@ input:focus, textarea:focus { border-color: var(--info); }
 .story-bottom { position: absolute; left: 8px; right: 8px; bottom: 22px; z-index: 2; display: flex; align-items: center; gap: 8px; }
 .reply-input { flex: 1; background: rgba(10,12,32,0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 12px; border-radius: 14px; outline: none; backdrop-filter: blur(2px); }
 .reply-input::placeholder { color: rgba(255,255,255,0.6); }
+.media-nav { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; border: 0; padding: 0; cursor: pointer; }
+.media-nav.left { left: 8px; }
+.media-nav.right { right: 8px; }
+.media-nav .nav-btn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.45); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.media-nav:hover .nav-btn { background: rgba(0,0,0,0.6); }
+.media-nav:disabled .nav-btn { opacity: 0.35; }
 .toast { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); }
 
 /* Profile posts grid */
