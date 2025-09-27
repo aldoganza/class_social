@@ -316,10 +316,8 @@ export default function StoriesBar() {
                 </div>
               </div>
             )}
-            <div className="row between" style={{marginTop:8}}>
-              <button className="btn btn-light" onClick={prevStory} disabled={showPlayer.index===0}>Prev</button>
+            <div className="row center" style={{marginTop:8}}>
               <div className="muted small">{showPlayer.index+1} / {showPlayer.group.items.length}</div>
-              <button className="btn btn-light" onClick={nextStory} disabled={showPlayer.index===showPlayer.group.items.length-1}>Next</button>
             </div>
           </div>
         </div>
