@@ -259,7 +259,7 @@ export default function StoriesBar() {
                 <div className="row between" style={{alignItems:'center'}}>
                   <div className="row gap" style={{alignItems:'center'}}>
                     <img src={showPlayer.group.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Profile" />
-                    <div className="bold small">{showPlayer.group.name}</div>
+                    <div className="bold small name">{showPlayer.group.name}</div>
                     {currentStory?.created_at && (
                       <div className="muted tiny">{timeAgo(currentStory.created_at)}</div>
                     )}

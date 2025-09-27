@@ -110,6 +110,7 @@ input:focus, textarea:focus { border-color: var(--info); }
 .story-bottom { position: absolute; left: 8px; right: 8px; bottom: 22px; z-index: 2; display: flex; align-items: center; gap: 8px; }
 .reply-input { flex: 1; background: rgba(10,12,32,0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 12px; border-radius: 14px; outline: none; backdrop-filter: blur(2px); }
 .reply-input::placeholder { color: rgba(255,255,255,0.6); }
+.story-top .name { color: #fff; }
 .media-nav { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; border: 0; padding: 0; cursor: pointer; }
 .media-nav.left { left: 8px; }
 .media-nav.right { right: 8px; }
