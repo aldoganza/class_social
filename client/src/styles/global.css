@@ -179,9 +179,16 @@ input:focus, textarea:focus { border-color: var(--info); }
 /* Responsive */
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; }
+  .sidebar {
+    position: sticky; top: 0; height: auto; z-index: 5;
+    flex-direction: row; align-items: center; gap: 8px; padding: 10px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .side-nav { flex-direction: row; gap: 8px; }
+  .side-link { padding: 8px 10px; white-space: nowrap; }
+  .side-footer { display: none; }
   .content { padding: 12px; }
-  .page-container { padding: 12px; }
+  .page-container { padding: 12px; max-width: 100%; }
   .two-col { grid-template-columns: 1fr; }
 }
 
@@ -222,6 +229,31 @@ input:focus, textarea:focus { border-color: var(--info); }
   /* Toast placement */
   .toast { bottom: 78px; }
 }
+
+/* Very small phones */
+@media (max-width: 420px) {
+  .logo { font-size: 18px; }
+  .side-link { padding: 8px; font-size: 13px; }
+  .title { font-size: 18px; }
+  .subtitle, .small { font-size: 12px; }
+  .btn { padding: 9px 12px; }
+  input, textarea { padding: 9px 10px; font-size: 14px; }
+  .card { padding: 12px; border-radius: 10px; }
+}
+
+/* Safe area for modern phones */
+@supports (padding: max(0px)) {
+  body { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+}
+
+/* Utility: prevent horizontal scroll */
+html, body { overflow-x: hidden; }
+
+/* Media: images/videos should never overflow containers */
+.content img, .content video { max-width: 100%; height: auto; }
+
+/* Tables or wide blocks scroll on small screens */
+.content table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
 
 /* Notification badge: red with subtle pulse */
 /* Badge: white number on red circle/pill (Instagram-like) */
