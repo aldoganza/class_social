@@ -361,21 +361,25 @@ export default function StoriesBar() {
               <div className="toast small">{toast}</div>
             )}
 
-            {/* Viewers list for owner */}
-            {viewersOpen && user && currentStory.user_id === user.id && (
-              <div className="card" style={{marginTop:10}}>
-                <div className="row between" style={{marginBottom:6}}>
-                  <div className="bold">Viewers ({viewers.length})</div>
-                  <button className="btn btn-light" onClick={() => setViewersOpen(false)}>Close</button>
-                </div>
-                <div className="list" style={{maxHeight:220, overflow:'auto'}}>
-                  {viewers.map(v => (
-                    <div key={v.id} className="list-item">
-                      <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
-                      <div className="bold small">{v.name}</div>
-                    </div>
-                  ))}
-                  {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}
+            {/* Viewers list for owner - separate modal for better visibility */}
+            {viewersOpen && user && (
+              <div className="modal" onClick={() => setViewersOpen(false)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="row between" style={{marginBottom:6, alignItems:'center'}}>
+                    <div className="bold">Viewers ({viewers.length})</div>
+                    <button className="icon-btn" aria-label="Close viewers" onClick={() => setViewersOpen(false)}>
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </div>
+                  <div className="list" style={{maxHeight: '60vh', overflow:'auto'}}>
+                    {viewers.map(v => (
+                      <div key={v.id} className="list-item">
+                        <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
+                        <div className="bold small">{v.name}</div>
+                      </div>
+                    ))}
+                    {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}
+                  </div>
                 </div>
               </div>
             )}
