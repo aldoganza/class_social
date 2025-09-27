@@ -16,6 +16,11 @@ export default function StoriesBar() {
   const [progress, setProgress] = useState(0) // 0..1 for current segment
   const [sending, setSending] = useState(false)
   const [toast, setToast] = useState('')
+  const [shareOpen, setShareOpen] = useState(false)
+  const [following, setFollowing] = useState([])
+  const [followingLoading, setFollowingLoading] = useState(false)
+  const [selected, setSelected] = useState(new Set())
+  const [shareText, setShareText] = useState('')
 
   // Simple time-ago helper
   const timeAgo = (ts) => {
@@ -155,15 +160,60 @@ export default function StoriesBar() {
         await api.post(`/messages/${ownerId}`, { content: text })
         setToast('Reply sent')
       } else {
-        const link = `${window.location.origin}/profile/${currentStory.user_id}?story=${currentStory.id}`
-        await api.post(`/messages/${ownerId}`, { content: `Replied to your story: ${link}` })
-        setToast('Story sent')
+        // Open share picker instead of sending directly
+        await openShare()
+        return
       }
       setReplyText('')
       setTimeout(() => setToast(''), 1500)
     } catch (e) {
       setError(e.message)
     } finally { setSending(false) }
+  }
+
+  const openShare = async () => {
+    try {
+      if (!user) return
+      setFollowingLoading(true)
+      const list = await api.get(`/users/${user.id}/following`)
+      setFollowing(list)
+      setShareOpen(true)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setFollowingLoading(false)
+    }
+  }
+
+  const toggleSelect = (id) => {
+    setSelected(prev => {
+      const copy = new Set(prev)
+      if (copy.has(id)) copy.delete(id); else copy.add(id)
+      return copy
+    })
+  }
+
+  const sendShare = async () => {
+    try {
+      if (!currentStory || selected.size === 0) return
+      setSending(true)
+      const link = `${window.location.origin}/profile/${currentStory.user_id}?story=${currentStory.id}`
+      const text = shareText.trim()
+      const content = text ? `${text}\n${link}` : `Check this story: ${link}`
+      const ids = Array.from(selected)
+      for (const id of ids) {
+        await api.post(`/messages/${id}`, { content })
+      }
+      setToast('Shared')
+      setShareOpen(false)
+      setSelected(new Set())
+      setShareText('')
+      setTimeout(() => setToast(''), 1500)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSending(false)
+    }
   }
 
   const openViewers = async () => {
@@ -286,11 +336,24 @@ export default function StoriesBar() {
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
                 className="reply-input"
               />
-              <button className="icon-btn" title="Send" aria-label="Send reply" onClick={sendReply} disabled={sending}>
+              <button className="icon-btn" title="Share" aria-label="Share story" onClick={sendReply} disabled={sending}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
               </button>
-              <button className="icon-btn" title="Quick like" aria-label="Quick like" onClick={toggleLike}>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" /></svg>
+              <button
+                className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`}
+                title="Like"
+                aria-label="Like"
+                aria-pressed={currentStory.liked_by_me}
+                onClick={toggleLike}
+                disabled={likeBusy}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {currentStory.liked_by_me ? (
+                    <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
+                  ) : (
+                    <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
+                  )}
+                </svg>
               </button>
             </div>
 
