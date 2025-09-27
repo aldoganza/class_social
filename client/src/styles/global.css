@@ -185,6 +185,44 @@ input:focus, textarea:focus { border-color: var(--info); }
   .two-col { grid-template-columns: 1fr; }
 }
 
+/* Extra mobile optimizations */
+@media (max-width: 600px) {
+  /* Sidebar condense spacing */
+  .sidebar { padding: 12px; gap: 10px; }
+  .side-link { padding: 9px 10px; }
+
+  /* Stories strip: better touch scroll and spacing */
+  .stories-bar { padding: 8px; }
+  .stories-strip { gap: 12px; padding: 6px 4px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+  .story { scroll-snap-align: start; }
+  .story-ring { width: 56px; height: 56px; padding: 3px; }
+  .story .small.bold { font-size: 11px; max-width: 64px; }
+
+  /* Modal: use nearly full-screen and remove heavy borders */
+  .modal-content { width: 96vw; max-width: 96vw; max-height: 92vh; padding: 10px; border-radius: 10px; }
+
+  /* Story media: ensure it fits viewport between top and bottom bars */
+  .story-media img, .story-media video { max-width: 96vw !important; max-height: calc(100vh - 220px) !important; }
+
+  /* Top bar tighter */
+  .story-top { left: 8px; right: 8px; top: 6px; }
+  .story-progress { gap: 3px; margin-bottom: 6px; }
+  .story-progress .seg { height: 2px; }
+
+  /* Bottom reply bar a bit higher and compact */
+  .story-bottom { left: 8px; right: 8px; bottom: 40px; gap: 6px; }
+  .reply-input { padding: 8px 10px; font-size: 14px; }
+  .icon-btn { padding: 6px; }
+
+  /* Nav arrows: slightly larger touch targets */
+  .media-nav .nav-btn { width: 40px; height: 40px; }
+  .media-nav.left { left: 6px; }
+  .media-nav.right { right: 6px; }
+
+  /* Toast placement */
+  .toast { bottom: 78px; }
+}
+
 /* Notification badge: red with subtle pulse */
 /* Badge: white number on red circle/pill (Instagram-like) */
 .badge {
