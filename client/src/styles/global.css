@@ -107,11 +107,11 @@ input:focus, textarea:focus { border-color: var(--info); }
 .story-progress { display: grid; grid-auto-flow: column; gap: 4px; margin-bottom: 8px; }
 .story-progress .seg { display: block; height: 3px; background: rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden; }
 .story-progress .seg .fill { display: block; height: 100%; background: #fff; border-radius: 999px; transition: width 100ms linear; }
-.story-bottom { position: absolute; left: 8px; right: 8px; bottom: 22px; z-index: 2; display: flex; align-items: center; gap: 8px; }
+.story-bottom { position: absolute; left: 8px; right: 8px; bottom: 32px; z-index: 3; display: flex; align-items: center; gap: 8px; }
 .reply-input { flex: 1; background: rgba(10,12,32,0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 12px; border-radius: 14px; outline: none; backdrop-filter: blur(2px); }
 .reply-input::placeholder { color: rgba(255,255,255,0.6); }
 .story-top .name { color: #fff; }
-.media-nav { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; border: 0; padding: 0; cursor: pointer; }
+.media-nav { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; border: 0; padding: 0; cursor: pointer; z-index: 3; }
 .media-nav.left { left: 8px; }
 .media-nav.right { right: 8px; }
 .media-nav .nav-btn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.45); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
