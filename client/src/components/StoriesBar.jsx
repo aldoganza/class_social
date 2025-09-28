@@ -67,8 +67,10 @@ export default function StoriesBar() {
 
   // Creation moved to /create page
 
-  const openUserStories = (userGroup) => {
-    setShowPlayer({ group: userGroup, index: 0 })
+  const openUserStories = (groupIndex) => {
+    const g = grouped[groupIndex]
+    if (!g) return
+    setShowPlayer({ group: g, groupIndex, index: 0 })
   }
 
   const nextStory = () => {
@@ -77,10 +79,10 @@ export default function StoriesBar() {
       const next = sp.index + 1
       if (next < sp.group.items.length) return { ...sp, index: next }
       // move to next user group if exists
-      const gi = grouped.findIndex(g => g.user_id === sp.group.user_id)
+      const gi = typeof sp.groupIndex === 'number' ? sp.groupIndex : grouped.findIndex(g => g.user_id === sp.group.user_id)
       if (gi >= 0 && gi + 1 < grouped.length) {
         const nextGroup = grouped[gi + 1]
-        return { group: nextGroup, index: 0 }
+        return { group: nextGroup, groupIndex: gi + 1, index: 0 }
       }
       return null // close when finished with last group
     })
@@ -92,10 +94,10 @@ export default function StoriesBar() {
       const prev = sp.index - 1
       if (prev >= 0) return { ...sp, index: prev }
       // move to previous user group if exists
-      const gi = grouped.findIndex(g => g.user_id === sp.group.user_id)
+      const gi = typeof sp.groupIndex === 'number' ? sp.groupIndex : grouped.findIndex(g => g.user_id === sp.group.user_id)
       if (gi > 0) {
         const prevGroup = grouped[gi - 1]
-        return { group: prevGroup, index: Math.max(0, (prevGroup.items?.length || 1) - 1) }
+        return { group: prevGroup, groupIndex: gi - 1, index: Math.max(0, (prevGroup.items?.length || 1) - 1) }
       }
       return sp
     })
@@ -244,8 +246,8 @@ export default function StoriesBar() {
       {/* Story creation moved to Sidebar -> /create */}
 
       <div className="stories-strip">
-        {grouped.map(g => (
-          <button key={g.user_id} className="story" onClick={() => openUserStories(g)}>
+        {grouped.map((g, i) => (
+          <button key={g.user_id} className="story" onClick={() => openUserStories(i)}>
             <span className="story-ring">
               <img src={g.profile_pic || 'https://via.placeholder.com/64'} alt={g.name} />
             </span>
@@ -330,6 +332,20 @@ export default function StoriesBar() {
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </span>
               </button>
+
+              {/* Large invisible tap zones (left/back, right/next) */}
+              <button
+                className="media-tap left"
+                aria-label="Previous area"
+                onClick={prevStory}
+                disabled={showPlayer.index===0 && (showPlayer.groupIndex === 0)}
+              />
+              <button
+                className="media-tap right"
+                aria-label="Next area"
+                onClick={nextStory}
+                disabled={showPlayer.index===showPlayer.group.items.length-1 && (showPlayer.groupIndex === grouped.length - 1)}
+              />
             </div>
             {/* Owner-only viewers button below media */}
             {user && currentStory.user_id === user.id && (
