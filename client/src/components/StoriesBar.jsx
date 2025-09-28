@@ -76,7 +76,13 @@ export default function StoriesBar() {
       if (!sp) return sp
       const next = sp.index + 1
       if (next < sp.group.items.length) return { ...sp, index: next }
-      return null // close when finished
+      // move to next user group if exists
+      const gi = grouped.findIndex(g => g.user_id === sp.group.user_id)
+      if (gi >= 0 && gi + 1 < grouped.length) {
+        const nextGroup = grouped[gi + 1]
+        return { group: nextGroup, index: 0 }
+      }
+      return null // close when finished with last group
     })
   }
 
@@ -85,6 +91,12 @@ export default function StoriesBar() {
       if (!sp) return sp
       const prev = sp.index - 1
       if (prev >= 0) return { ...sp, index: prev }
+      // move to previous user group if exists
+      const gi = grouped.findIndex(g => g.user_id === sp.group.user_id)
+      if (gi > 0) {
+        const prevGroup = grouped[gi - 1]
+        return { group: prevGroup, index: Math.max(0, (prevGroup.items?.length || 1) - 1) }
+      }
       return sp
     })
   }
