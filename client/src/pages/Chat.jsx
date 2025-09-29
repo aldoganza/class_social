@@ -24,17 +24,17 @@ export default function Chat() {
     } catch (e) {
       // silently ignore
     }
+  }
 
   const deleteMessage = async (messageId) => {
     try {
       await api.del(`/messages/${messageId}`)
       setMessages((prev) => prev.filter(m => m.id !== messageId))
-      // Also refresh conversations preview
+      // Refresh conversations preview
       loadConversations()
     } catch (e) {
       setError(e.message)
     }
-  }
   }
 
   useEffect(() => {
