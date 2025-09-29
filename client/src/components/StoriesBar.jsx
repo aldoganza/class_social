@@ -404,6 +404,9 @@ export default function StoriesBar() {
                       <div key={v.id} className="list-item">
                         <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
                         <div className="bold small">{v.name}</div>
+                        <span className="pill small" title={v.liked ? 'This viewer liked your story' : 'This viewer only viewed your story'}>
+                          {v.liked ? 'Liked' : 'Viewed'}
+                        </span>
                       </div>
                     ))}
                     {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}

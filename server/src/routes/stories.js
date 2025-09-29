@@ -176,7 +176,6 @@ router.post('/:id/view', authRequired, async (req, res) => {
     const [[m]] = await pool.query('SELECT COUNT(*) AS views_count FROM stories_views WHERE story_id = ?', [storyId])
     res.json({ success: true, views_count: Number(m.views_count || 0) })
   } catch (err) {
-    console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -191,11 +190,22 @@ router.get('/:id/viewers', authRequired, async (req, res) => {
     if (!owner) return res.status(404).json({ error: 'Story not found' })
     if (owner.user_id !== req.user.id) return res.status(403).json({ error: 'Not allowed' })
     const [rows] = await pool.query(
-      `SELECT u.id, u.name, u.profile_pic, sv.created_at
-         FROM stories_views sv JOIN users u ON u.id = sv.user_id
-        WHERE sv.story_id = ?
-        ORDER BY sv.created_at DESC
-        LIMIT 200`,
+      `SELECT 
+            u.id, 
+            u.name, 
+            u.profile_pic, 
+            sv.created_at,
+            EXISTS(
+              SELECT 1 
+                FROM stories_likes sl 
+               WHERE sl.story_id = sv.story_id 
+                 AND sl.user_id = sv.user_id
+            ) AS liked
+           FROM stories_views sv 
+           JOIN users u ON u.id = sv.user_id
+          WHERE sv.story_id = ?
+          ORDER BY sv.created_at DESC
+          LIMIT 200`,
       [storyId]
     )
     res.json(rows)
