@@ -424,13 +424,13 @@ export default function StoriesBar() {
             </div>
             {/* Owner-only viewers button below media */}
             {user && currentStory.user_id === user.id && (
-              <div className="row end" style={{marginTop:6}}>
+              <div className="row end" style={{marginTop:6, marginBottom:16}}>
                 <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
               </div>
             )}
 
             {/* Bottom reply overlay */}
-            <div className="story-bottom">
+            <div className="story-bottom" style={{marginTop:20}}>
               <input
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}

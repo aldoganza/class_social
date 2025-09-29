@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function Chat() {
   const { id } = useParams() // chatting with user id
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -104,6 +105,36 @@ export default function Chat() {
     }
   }
 
+  // Convert URLs in plain text to clickable links that navigate within the app
+  const renderWithLinks = (text) => {
+    if (!text) return null
+    const splitter = /(https?:\/\/\S+)/g // global only for splitting
+    const parts = String(text).split(splitter)
+    return parts.map((part, i) => {
+      // Use a non-global test to avoid lastIndex issues
+      const isUrl = /^(https?:\/\/\S+)$/.test(part)
+      if (isUrl) {
+        const url = part
+        const onClick = (e) => {
+          try {
+            const u = new URL(url)
+            if (u.origin === window.location.origin) {
+              e.preventDefault()
+              navigate(u.pathname + u.search)
+              return
+            }
+          } catch {}
+        }
+        return (
+          <a key={i} href={url} onClick={onClick} className="link" rel="noopener noreferrer">
+            {url}
+          </a>
+        )
+      }
+      return <span key={i}>{part}</span>
+    })
+  }
+
   return (
     <div className="page two-col">
       <div className="card sidebar">
@@ -153,7 +184,7 @@ export default function Chat() {
                         <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" style={{marginRight:8}} />
                       )}
                       <div>
-                        <div>{m.content}</div>
+                        <div>{renderWithLinks(m.content)}</div>
                         <div className="timestamp">{new Date(m.created_at).toLocaleTimeString()}</div>
                       </div>
                     </div>
