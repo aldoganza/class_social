@@ -403,10 +403,22 @@ export default function StoriesBar() {
                     {viewers.map(v => (
                       <div key={v.id} className="list-item">
                         <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
-                        <div className="bold small">{v.name}</div>
-                        <span className="pill small" title={v.liked ? 'This viewer liked your story' : 'This viewer only viewed your story'}>
-                          {v.liked ? 'Liked' : 'Viewed'}
-                        </span>
+                        <div className="bold small" style={{display:'flex', alignItems:'center', gap:8}}>
+                          {v.name}
+                          {v.liked && (
+                            <svg
+                              viewBox="0 0 24 24"
+                              width="16"
+                              height="16"
+                              fill="red"
+                              aria-label="Liked"
+                              role="img"
+                              style={{marginLeft:6}}
+                            >
+                              <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                            </svg>
+                          )}
+                        </div>
                       </div>
                     ))}
                     {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}
