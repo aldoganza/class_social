@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import PostCard from '../components/PostCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function Profile() {
   const { id } = useParams()
+  const [search] = useSearchParams()
+  const navigate = useNavigate()
   const { user: me } = useAuth()
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
@@ -20,6 +22,13 @@ export default function Profile() {
   const [newImage, setNewImage] = useState(null)
 
   useEffect(() => {
+    // If opened via shared link with ?story=, redirect to Home to open the story viewer
+    const sharedStory = search.get('story')
+    if (sharedStory) {
+      navigate('/', { replace: true, state: { openStoryId: Number(sharedStory) } })
+      return
+    }
+
     async function load() {
       try {
         const u = await api.get(`/users/${id}`)

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function StoriesBar() {
   const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [stories, setStories] = useState([])
   const [grouped, setGrouped] = useState([]) // [{ user_id, name, profile_pic, items: [stories...] }]
   const [error, setError] = useState('')
@@ -52,6 +55,25 @@ export default function StoriesBar() {
       setGrouped(Object.values(byUser))
     } catch (e) { setError(e.message) }
   }
+
+  // Open a specific story if requested via navigation state (deep link from shared message)
+  useEffect(() => {
+    const targetId = location.state && location.state.openStoryId
+    if (!targetId || grouped.length === 0) return
+
+    let found = null
+    let gi = -1
+    for (let i = 0; i < grouped.length; i++) {
+      const idx = grouped[i].items.findIndex(s => Number(s.id) === Number(targetId))
+      if (idx !== -1) { found = { group: grouped[i], groupIndex: i, index: idx }; gi = i; break }
+    }
+    if (found) {
+      setShowPlayer(found)
+      // Clear the state so it doesn't reopen if user navigates back
+      navigate('.', { replace: true, state: {} })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grouped, location.state])
 
   const deleteStory = async (storyId) => {
     try {
@@ -312,6 +334,56 @@ export default function StoriesBar() {
                 </div>
               </div>
             )}
+
+            {/* Share picker modal */}
+            {shareOpen && user && (
+              <div className="modal" onClick={() => setShareOpen(false)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="row between" style={{marginBottom:6, alignItems:'center'}}>
+                    <div className="bold">Share story</div>
+                    <button className="icon-btn" aria-label="Close share" onClick={() => setShareOpen(false)}>
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </div>
+                  <div className="muted tiny" style={{marginBottom:8}}>Select followers to send this story link</div>
+                  <div className="list" style={{maxHeight: '40vh', overflow:'auto', border:'1px solid var(--border)', borderRadius:6}}>
+                    {followingLoading && <div className="small" style={{padding:8}}>Loading...</div>}
+                    {!followingLoading && following.map(f => (
+                      <label key={f.id} className="list-item" style={{cursor:'pointer'}}>
+                        <div className="row gap" style={{alignItems:'center'}}>
+                          <input
+                            type="checkbox"
+                            checked={selected.has(f.id)}
+                            onChange={() => toggleSelect(f.id)}
+                            aria-label={`Select ${f.name}`}
+                          />
+                          <img src={f.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
+                          <div className="small bold">{f.name}</div>
+                        </div>
+                      </label>
+                    ))}
+                    {!followingLoading && following.length === 0 && (
+                      <div className="muted small" style={{padding:8}}>You are not following anyone yet.</div>
+                    )}
+                  </div>
+                  <div style={{marginTop:8}}>
+                    <textarea
+                      value={shareText}
+                      onChange={(e) => setShareText(e.target.value)}
+                      placeholder="Add a message (optional)"
+                      rows={3}
+                      style={{width:'100%'}}
+                    />
+                  </div>
+                  <div className="row end" style={{marginTop:8, gap:8}}>
+                    <button className="btn btn-light" onClick={() => setSelected(new Set())}>Clear</button>
+                    <button className="btn" disabled={selected.size === 0 || sending} onClick={sendShare}>
+                      {sending ? 'Sending...' : `Share (${selected.size})`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="story-media">
               {currentStory.media_type === 'video' ? (
                 <video
@@ -367,7 +439,7 @@ export default function StoriesBar() {
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
                 className="reply-input"
               />
-              <button className="icon-btn" title="Share" aria-label="Share story" onClick={sendReply} disabled={sending}>
+              <button className="icon-btn" title="Share" aria-label="Share story" onClick={openShare} disabled={sending}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
               </button>
               <button
