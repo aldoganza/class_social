@@ -11,3 +11,17 @@
   --success: #4cd964; /* green */
   --shadow: rgba(0,0,0,0.4);
 }
+
+[data-theme="light"] {
+  --bg: #f6f7fb;
+  --bg-soft: #eef0f7;
+  --card: #ffffff;
+  --text: #12131a;
+  --muted: #58607a;
+  --primary: #4b57f3; /* deeper purple/indigo */
+  --accent: #e6458f;  /* magenta */
+  --info: #0aa1d2;    /* blue */
+  --warn: #e4972f;    /* orange */
+  --success: #2fae5f; /* green */
+  --shadow: rgba(0,0,0,0.08);
+}
