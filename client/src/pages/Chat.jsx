@@ -37,6 +37,21 @@ export default function Chat() {
     }
   }
 
+  const hideMessage = async (messageId) => {
+    try {
+      await api.post(`/messages/${messageId}/hide`, {})
+      setMessages((prev) => prev.filter(m => m.id !== messageId))
+      loadConversations()
+    } catch (e) { setError(e.message) }
+  }
+
+  const chooseDelete = async (messageId) => {
+    try {
+      const forEveryone = window.confirm('Delete for everyone?\nPress OK to delete for everyone, or Cancel to delete for you only.')
+      if (forEveryone) await deleteMessage(messageId); else await hideMessage(messageId)
+    } catch (e) { setError(e.message) }
+  }
+
   useEffect(() => {
     loadConversations()
     const fetchMessages = async () => {
@@ -200,9 +215,9 @@ export default function Chat() {
                           {mine && (
                             <button
                               className="icon-btn"
-                              title="Unsend"
-                              aria-label="Unsend message"
-                              onClick={() => deleteMessage(m.id)}
+                              title="Delete"
+                              aria-label="Delete message"
+                              onClick={() => chooseDelete(m.id)}
                               style={{opacity:0.8}}
                             >
                               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

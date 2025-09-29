@@ -4,6 +4,20 @@ const { authRequired } = require('../middleware/auth');
 
 const router = express.Router();
 
+async function ensureMessagesExtras() {
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS messages_hidden (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      message_id INT NOT NULL,
+      user_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_hidden (message_id, user_id),
+      FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+}
+
 // Send a direct message
 router.post('/:receiverId', authRequired, async (req, res) => {
   try {
@@ -75,14 +89,19 @@ router.get('/conversations', authRequired, async (req, res) => {
 // Get conversation between current user and :userId
 router.get('/:userId', authRequired, async (req, res) => {
   try {
+    await ensureMessagesExtras()
     const otherId = Number(req.params.userId);
     const myId = req.user.id;
     const [rows] = await pool.execute(
-      `SELECT * FROM messages
-       WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-       ORDER BY created_at ASC
+      `SELECT m.* FROM messages m
+       WHERE ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?))
+         AND NOT EXISTS (
+           SELECT 1 FROM messages_hidden mh
+            WHERE mh.message_id = m.id AND mh.user_id = ?
+         )
+       ORDER BY m.created_at ASC
        LIMIT 500`,
-      [myId, otherId, otherId, myId]
+      [myId, otherId, otherId, myId, myId]
     );
 
     // Mark all messages sent by otherId to me as read
@@ -115,6 +134,42 @@ router.post('/:userId/read', authRequired, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// POST /messages/:messageId/hide - delete for me (hide only for current user)
+router.post('/:messageId/hide', authRequired, async (req, res) => {
+  try {
+    await ensureMessagesExtras()
+    const messageId = Number(req.params.messageId)
+    const myId = req.user.id
+    // Validate that the message is part of a conversation with me (optional but safer)
+    const [rows] = await pool.execute(
+      `SELECT id FROM messages WHERE id = ? AND (sender_id = ? OR receiver_id = ?)`,
+      [messageId, myId, myId]
+    )
+    if (rows.length === 0) return res.status(404).json({ error: 'Message not found' })
+    await pool.execute(
+      `INSERT IGNORE INTO messages_hidden (message_id, user_id) VALUES (?, ?)`,
+      [messageId, myId]
+    )
+    res.json({ hidden: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// DELETE /messages/:messageId/hide - unhide a message (optional)
+router.delete('/:messageId/hide', authRequired, async (req, res) => {
+  try {
+    const messageId = Number(req.params.messageId)
+    const myId = req.user.id
+    await pool.execute(`DELETE FROM messages_hidden WHERE message_id = ? AND user_id = ?`, [messageId, myId])
+    res.json({ hidden: false })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
 
 // DELETE /messages/:messageId - sender can unsend (delete) their own message
 router.delete('/:messageId', authRequired, async (req, res) => {
