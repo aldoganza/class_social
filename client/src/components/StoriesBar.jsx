@@ -142,6 +142,20 @@ export default function StoriesBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStory?.id])
 
+  // Keyboard shortcuts while modal open
+  useEffect(() => {
+    if (!currentStory) return
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); nextStory() }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStory() }
+      else if (e.key === 'Escape') { e.preventDefault(); setShowPlayer(null) }
+      else if (e.key.toLowerCase() === 'm') { e.preventDefault(); setIsMuted(m => !m) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStory?.id])
+
   const toggleLike = async () => {
     if (!currentStory || likeBusy) return
     setLikeBusy(true)
@@ -334,18 +348,7 @@ export default function StoriesBar() {
               </button>
 
               {/* Large invisible tap zones (left/back, right/next) */}
-              <button
-                className="media-tap left"
-                aria-label="Previous area"
-                onClick={prevStory}
-                disabled={showPlayer.index===0 && (showPlayer.groupIndex === 0)}
-              />
-              <button
-                className="media-tap right"
-                aria-label="Next area"
-                onClick={nextStory}
-                disabled={showPlayer.index===showPlayer.group.items.length-1 && (showPlayer.groupIndex === grouped.length - 1)}
-              />
+              {/* Removed large tap zones to avoid accidental navigation */}
             </div>
             {/* Owner-only viewers button below media */}
             {user && currentStory.user_id === user.id && (
