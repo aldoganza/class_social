@@ -25,6 +25,27 @@ export default function StoriesBar() {
   const [selected, setSelected] = useState(new Set())
   const [shareText, setShareText] = useState('')
   const [likeAnim, setLikeAnim] = useState(false)
+  const [likeHearts, setLikeHearts] = useState([]) // [{id, dx, delay, duration, size}]
+
+  const spawnLikeHearts = (count = 6) => {
+    const now = Date.now()
+    const batch = Array.from({ length: count }).map((_, i) => {
+      return {
+        id: now + i + Math.random(),
+        dx: Math.round((Math.random() * 2 - 1) * 40), // -40..40 px horizontal drift
+        delay: Math.floor(Math.random() * 200), // 0..200ms
+        duration: 900 + Math.floor(Math.random() * 400), // 900..1300ms
+        size: 18 + Math.floor(Math.random() * 12), // 18..30 px
+      }
+    })
+    setLikeHearts((prev) => [...prev, ...batch])
+    // cleanup each heart after it finishes
+    batch.forEach((h) => {
+      setTimeout(() => {
+        setLikeHearts((prev) => prev.filter((x) => x.id !== h.id))
+      }, h.delay + h.duration + 60)
+    })
+  }
 
   // Simple time-ago helper
   const timeAgo = (ts) => {
@@ -198,6 +219,8 @@ export default function StoriesBar() {
           setLikeAnim(true)
           setTimeout(() => setLikeAnim(false), 900)
         })
+        // Spawn multiple floating hearts for a nicer effect
+        spawnLikeHearts(8)
       }
       setShowPlayer({ ...showPlayer })
     } catch (e) {
@@ -415,14 +438,27 @@ export default function StoriesBar() {
                 </div>
               )}
 
-              {/* Like floating heart animation overlay */}
-              {likeAnim && (
+              {/* Like floating heart animation overlay (single + burst) */}
+              {(likeAnim || likeHearts.length > 0) && (
                 <div aria-hidden style={{position:'absolute', right: 28, bottom: 90, zIndex: 9999, pointerEvents:'none'}}>
-                  <span style={{display:'inline-block', animation:'likeFloat 0.9s ease-out forwards'}}>
-                    <svg viewBox="0 0 24 24" width="28" height="28" fill="red">
-                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
-                    </svg>
-                  </span>
+                  {/* Single big heart */}
+                  {likeAnim && (
+                    <span style={{display:'inline-block', animation:'likeFloat 0.9s ease-out forwards', marginLeft: 0}}>
+                      <svg viewBox="0 0 24 24" width="28" height="28" fill="red">
+                        <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                      </svg>
+                    </span>
+                  )}
+                  {/* Burst hearts */}
+                  {likeHearts.map(h => (
+                    <span key={h.id} style={{display:'inline-block', transform:`translateX(${h.dx}px)`, marginLeft: 4}}>
+                      <span style={{display:'inline-block', animation:`likeFloat ${h.duration}ms ease-out ${h.delay}ms forwards`}}>
+                        <svg viewBox="0 0 24 24" width={h.size} height={h.size} fill="red">
+                          <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                        </svg>
+                      </span>
+                    </span>
+                  ))}
                 </div>
               )}
 
