@@ -303,7 +303,7 @@ export default function StoriesBar() {
 
       {currentStory && (
         <div className="modal" onClick={() => setShowPlayer(null)}>
-          <div className="modal-content story-frame" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content story-frame" onClick={(e) => e.stopPropagation()} style={{position:'relative', overflow:'visible'}}>
             {/* Top overlay bar with progress segments */}
             {showPlayer && (
               <div className="story-top">
@@ -412,6 +412,17 @@ export default function StoriesBar() {
               {user && currentStory.user_id === user.id && (
                 <div className="media-overlay right">
                   <span className="pill small" title="Views">{Number(currentStory.views_count || 0)}</span>
+                </div>
+              )}
+
+              {/* Like floating heart animation overlay */}
+              {likeAnim && (
+                <div aria-hidden style={{position:'absolute', right: 28, bottom: 90, zIndex: 9999, pointerEvents:'none'}}>
+                  <span style={{display:'inline-block', animation:'likeFloat 0.9s ease-out forwards'}}>
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="red">
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                    </svg>
+                  </span>
                 </div>
               )}
 
