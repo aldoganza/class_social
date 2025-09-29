@@ -116,4 +116,21 @@ router.post('/:userId/read', authRequired, async (req, res) => {
   }
 });
 
+// DELETE /messages/:messageId - sender can unsend (delete) their own message
+router.delete('/:messageId', authRequired, async (req, res) => {
+  try {
+    const messageId = Number(req.params.messageId)
+    const myId = req.user.id
+    // Ensure the message exists and is owned by the requester
+    const [rows] = await pool.execute('SELECT id, sender_id FROM messages WHERE id = ?', [messageId])
+    if (rows.length === 0) return res.status(404).json({ error: 'Message not found' })
+    if (rows[0].sender_id !== myId) return res.status(403).json({ error: 'Not allowed' })
+    await pool.execute('DELETE FROM messages WHERE id = ? AND sender_id = ?', [messageId, myId])
+    res.json({ deleted: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 module.exports = router;

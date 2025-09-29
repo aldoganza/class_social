@@ -24,6 +24,17 @@ export default function Chat() {
     } catch (e) {
       // silently ignore
     }
+
+  const deleteMessage = async (messageId) => {
+    try {
+      await api.del(`/messages/${messageId}`)
+      setMessages((prev) => prev.filter(m => m.id !== messageId))
+      // Also refresh conversations preview
+      loadConversations()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
   }
 
   useEffect(() => {
@@ -184,7 +195,25 @@ export default function Chat() {
                         <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" style={{marginRight:8}} />
                       )}
                       <div>
-                        <div>{renderWithLinks(m.content)}</div>
+                        <div className="row between" style={{alignItems:'center', gap:8}}>
+                          <div>{renderWithLinks(m.content)}</div>
+                          {mine && (
+                            <button
+                              className="icon-btn"
+                              title="Unsend"
+                              aria-label="Unsend message"
+                              onClick={() => deleteMessage(m.id)}
+                              style={{opacity:0.8}}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" />
+                                <path d="M14 11v6" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                         <div className="timestamp">{new Date(m.created_at).toLocaleTimeString()}</div>
                       </div>
                     </div>
