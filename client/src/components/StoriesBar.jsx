@@ -24,6 +24,7 @@ export default function StoriesBar() {
   const [followingLoading, setFollowingLoading] = useState(false)
   const [selected, setSelected] = useState(new Set())
   const [shareText, setShareText] = useState('')
+  const [likeAnim, setLikeAnim] = useState(false)
 
   // Simple time-ago helper
   const timeAgo = (ts) => {
@@ -190,6 +191,13 @@ export default function StoriesBar() {
         const res = await api.post(`/stories/${currentStory.id}/like`, {})
         currentStory.liked_by_me = true
         currentStory.likes_count = res.likes_count
+        // Trigger heart float animation when liking
+        setLikeAnim(false)
+        // restart animation in case it was recently played
+        requestAnimationFrame(() => {
+          setLikeAnim(true)
+          setTimeout(() => setLikeAnim(false), 900)
+        })
       }
       setShowPlayer({ ...showPlayer })
     } catch (e) {
@@ -507,6 +515,15 @@ export default function StoriesBar() {
           </div>
         </div>
       )}
+      {/* Inline keyframes for like float animation */}
+      <style>{`
+        @keyframes likeFloat {
+          0% { transform: translateY(0) scale(0.9); opacity: 0; }
+          15% { opacity: 1; }
+          60% { transform: translateY(-24px) scale(1.05); opacity: 1; }
+          100% { transform: translateY(-40px) scale(1); opacity: 0; }
+        }
+      `}</style>
     </div>
   )
 }
