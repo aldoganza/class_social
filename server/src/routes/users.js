@@ -1,8 +1,22 @@
 const express = require('express');
 const { pool } = require('../lib/db');
 const { authRequired } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
+
+// Storage for profile pictures (same uploads dir as server index)
+const uploadDir = path.join(__dirname, '..', '..', process.env.UPLOAD_DIR || 'uploads')
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, uploadDir) },
+  filename: function (req, file, cb) {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9)
+    const ext = path.extname(file.originalname)
+    cb(null, unique + ext)
+  }
+})
+const upload = multer({ storage })
 
 // Get user by id
 router.get('/:id', authRequired, async (req, res) => {
@@ -85,3 +99,31 @@ router.get('/:id/stats', authRequired, async (req, res) => {
 });
 
 module.exports = router;
+
+// Update current user's profile (name and/or profile picture)
+router.patch('/me', authRequired, upload.single('profile_pic'), async (req, res) => {
+  try {
+    const fields = []
+    const params = []
+    const { name } = req.body
+    if (name && name.trim()) {
+      fields.push('name = ?')
+      params.push(name.trim())
+    }
+    if (req.file) {
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`
+      const url = `${baseUrl}/uploads/${req.file.filename}`
+      fields.push('profile_pic = ?')
+      params.push(url)
+    }
+    if (fields.length === 0) return res.status(400).json({ error: 'No changes provided' })
+    params.push(req.user.id)
+    await pool.execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params)
+
+    const [[user]] = await pool.query('SELECT id, name, email, profile_pic FROM users WHERE id = ?', [req.user.id])
+    res.json(user)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
