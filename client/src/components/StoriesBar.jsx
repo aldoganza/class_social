@@ -415,7 +415,7 @@ export default function StoriesBar() {
                 </div>
               </div>
             )}
-            <div className="story-media">
+            <div className="story-media" style={{position:'relative'}}>
               {currentStory.media_type === 'video' ? (
                 <video
                   src={currentStory.media_url}
@@ -429,6 +429,39 @@ export default function StoriesBar() {
                 <div>
                   <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
                   {currentStory.audio_url && <audio src={currentStory.audio_url} autoPlay controls={false} style={{display:'none'}} />}
+                </div>
+              )}
+
+              {/* Optional text overlay */}
+              {currentStory.text && (
+                <div
+                  className="story-text-overlay"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    top: currentStory.text_pos === 'top' ? 10 : currentStory.text_pos === 'center' ? '45%' : 'auto',
+                    bottom: currentStory.text_pos === 'bottom' ? 16 : 'auto',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: currentStory.text_color || '#fff',
+                      background: currentStory.text_bg || 'rgba(0,0,0,0.5)',
+                      padding: '6px 10px',
+                      borderRadius: 10,
+                      maxWidth: '85%',
+                      textAlign: 'center',
+                      fontWeight: 600,
+                      letterSpacing: 0.2,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+                    }}
+                  >
+                    {currentStory.text}
+                  </span>
                 </div>
               )}
               {/* Removed top like overlay per request */}
