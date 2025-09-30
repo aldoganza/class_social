@@ -14,11 +14,77 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // Settings (more options)
+  const [loadingSettings, setLoadingSettings] = useState(true)
+  const [privacyPrivate, setPrivacyPrivate] = useState(false)
+  const [messagesFollowersOnly, setMessagesFollowersOnly] = useState(false)
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [settingsSaved, setSettingsSaved] = useState('')
+  const [settingsError, setSettingsError] = useState('')
+
+  // Change password
+  const [curPass, setCurPass] = useState('')
+  const [newPass, setNewPass] = useState('')
+  const [newPass2, setNewPass2] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwMsg, setPwMsg] = useState('')
+
   useEffect(() => {
     if (user) {
       setName(user.name || '')
       setEmail(user.email || '')
     }
+
+  // Load existing settings
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        setLoadingSettings(true)
+        const s = await api.get('/users/me/settings')
+        if (!mounted) return
+        setPrivacyPrivate(!!s.privacy_private)
+        setMessagesFollowersOnly(!!s.messages_followers_only)
+        setEmailNotifications(!!s.email_notifications)
+      } catch (e) {
+        setSettingsError(e.message || 'Failed to load settings')
+      } finally {
+        setLoadingSettings(false)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
+  const saveSettings = async () => {
+    try {
+      setSettingsError('')
+      setSettingsSaved('')
+      await api.patch('/users/me/settings', {
+        privacy_private: privacyPrivate ? 1 : 0,
+        messages_followers_only: messagesFollowersOnly ? 1 : 0,
+        email_notifications: emailNotifications ? 1 : 0,
+      })
+      setSettingsSaved('Saved')
+      setTimeout(() => setSettingsSaved(''), 1200)
+    } catch (e) {
+      setSettingsError(e.message || 'Failed to save settings')
+    }
+  }
+
+  const changePassword = async (e) => {
+    e.preventDefault()
+    setPwMsg('')
+    if (!curPass || !newPass) { setPwMsg('Please fill both fields'); return }
+    if (newPass !== newPass2) { setPwMsg('Passwords do not match'); return }
+    setPwSaving(true)
+    try {
+      await api.patch('/auth/password', { current_password: curPass, new_password: newPass })
+      setPwMsg('Password changed')
+      setCurPass(''); setNewPass(''); setNewPass2('')
+    } catch (e) {
+      setPwMsg(e.message || 'Failed to change password')
+    } finally { setPwSaving(false) }
+  }
   }, [user])
 
   const onSelectTheme = (v) => setTheme(v)
@@ -92,12 +158,51 @@ export default function Settings() {
         </div>
 
         <div className="section" style={{marginTop:16}}>
-          <h3>More options</h3>
-          <ul className="small">
-            <li>Change password (coming soon)</li>
-            <li>Privacy controls (coming soon)</li>
-            <li>Notification preferences (coming soon)</li>
-          </ul>
+          <h3>Privacy</h3>
+          {settingsError && <div className="error" style={{marginBottom:8}}>{settingsError}</div>}
+          <div className="col" style={{gap:10}}>
+            <label className="row between" style={{alignItems:'center'}}>
+              <span>Private account</span>
+              <input type="checkbox" checked={privacyPrivate} onChange={(e)=>setPrivacyPrivate(e.target.checked)} />
+            </label>
+            <label className="row between" style={{alignItems:'center'}}>
+              <span>Allow messages from followers only</span>
+              <input type="checkbox" checked={messagesFollowersOnly} onChange={(e)=>setMessagesFollowersOnly(e.target.checked)} />
+            </label>
+            <div className="row end" style={{gap:8}}>
+              <button className="btn btn-primary" onClick={saveSettings} disabled={loadingSettings}>Save Privacy</button>
+              {settingsSaved && <span className="muted small">{settingsSaved}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="section" style={{marginTop:16}}>
+          <h3>Notifications</h3>
+          <div className="row between" style={{alignItems:'center'}}>
+            <span>Email notifications</span>
+            <input type="checkbox" checked={emailNotifications} onChange={(e)=>setEmailNotifications(e.target.checked)} />
+          </div>
+          <div className="row end" style={{gap:8, marginTop:8}}>
+            <button className="btn btn-primary" onClick={saveSettings}>Save Notifications</button>
+            {settingsSaved && <span className="muted small">{settingsSaved}</span>}
+          </div>
+        </div>
+
+        <div className="section" style={{marginTop:16}}>
+          <h3>Change password</h3>
+          <form onSubmit={changePassword} className="form col" style={{gap:8}}>
+            <label className="small">Current password</label>
+            <input type="password" value={curPass} onChange={(e)=>setCurPass(e.target.value)} placeholder="Current password" />
+            <label className="small">New password</label>
+            <input type="password" value={newPass} onChange={(e)=>setNewPass(e.target.value)} placeholder="New password" />
+            <label className="small">Confirm new password</label>
+            <input type="password" value={newPass2} onChange={(e)=>setNewPass2(e.target.value)} placeholder="Confirm new password" />
+            <div className="row gap end">
+              <button className="btn btn-primary" disabled={pwSaving}>{pwSaving? 'Saving...' : 'Change password'}</button>
+              {pwMsg && <span className="muted small">{pwMsg}</span>}
+            </div>
+          </form>
+        </div>
         </div>
       </div>
     </div>
