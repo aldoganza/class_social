@@ -26,6 +26,7 @@ export default function StoriesBar() {
   const [shareText, setShareText] = useState('')
   const [likeAnim, setLikeAnim] = useState(false)
   const [likeHearts, setLikeHearts] = useState([]) // [{id, dx, delay, duration, size}]
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const spawnLikeHearts = (count = 6) => {
     const now = Date.now()
@@ -114,10 +115,12 @@ export default function StoriesBar() {
   const openUserStories = (groupIndex) => {
     const g = grouped[groupIndex]
     if (!g) return
+    setMenuOpen(false)
     setShowPlayer({ group: g, groupIndex, index: 0 })
   }
 
   const nextStory = () => {
+    setMenuOpen(false)
     setShowPlayer((sp) => {
       if (!sp) return sp
       const next = sp.index + 1
@@ -169,6 +172,7 @@ export default function StoriesBar() {
   // Auto-advance with progress bar (longer per request)
   useEffect(() => {
     if (!currentStory) return
+    setMenuOpen(false)
     setProgress(0)
     const DURATION = currentStory.media_type === 'video' ? 15000 : 12000
     const startedAt = Date.now()
@@ -345,7 +349,7 @@ export default function StoriesBar() {
                       <div className="muted tiny">{timeAgo(currentStory.created_at)}</div>
                     )}
                   </div>
-                  <div className="row gap">
+                  <div className="row gap" style={{position:'relative'}}>
                     {/* Mute toggle */}
                     <button className="icon-btn" title={isMuted? 'Unmute' : 'Mute'} aria-label="Toggle audio" onClick={() => setIsMuted(m => !m)}>
                       {isMuted ? (
@@ -354,10 +358,32 @@ export default function StoriesBar() {
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15 9a3 3 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/></svg>
                       )}
                     </button>
-                    {/* Menu placeholder */}
-                    <button className="icon-btn" title="More" aria-label="More options">
+                    {/* More menu */}
+                    <button
+                      className="icon-btn"
+                      title="More"
+                      aria-label="More options"
+                      onClick={() => setMenuOpen(v => !v)}
+                    >
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
                     </button>
+                    {menuOpen && (
+                      <div
+                        className="dropdown"
+                        style={{ position:'absolute', top: 28, right: 36, background:'var(--card)', border:'1px solid var(--bg-soft)', borderRadius:8, boxShadow:'0 6px 20px var(--shadow)', zIndex: 9999, minWidth: 160 }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {user && currentStory && user.id === currentStory.user_id && (
+                          <button
+                            className="dropdown-item"
+                            style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', color:'var(--text)', cursor:'pointer' }}
+                            onClick={() => { setMenuOpen(false); deleteStory(currentStory.id) }}
+                          >
+                            Delete story
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setShowPlayer(null)}>
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                     </button>
