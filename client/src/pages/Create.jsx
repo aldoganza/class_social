@@ -4,6 +4,10 @@ import { api } from '../lib/api'
 export default function Create() {
   const [media, setMedia] = useState(null)
   const [audio, setAudio] = useState(null)
+  const [text, setText] = useState('')
+  const [textColor, setTextColor] = useState('#ffffff')
+  const [textBg, setTextBg] = useState('#00000080')
+  const [textPos, setTextPos] = useState('bottom')
   const [error, setError] = useState('')
   const [ok, setOk] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -29,9 +33,13 @@ export default function Create() {
       const fd = new FormData()
       fd.append('media', media)
       if (audio) fd.append('audio', audio)
+      if (text && text.trim()) fd.append('text', text.trim())
+      if (textColor) fd.append('text_color', textColor)
+      if (textBg) fd.append('text_bg', textBg)
+      if (textPos) fd.append('text_pos', textPos)
       await api.postForm('/stories', fd)
       setOk('Story posted! It will expire in 24 hours.')
-      setMedia(null); setAudio(null)
+      setMedia(null); setAudio(null); setText('')
     } catch (e) {
       setError(e.message)
     } finally {
@@ -55,6 +63,22 @@ export default function Create() {
         {media && (
           <div className="preview" style={{marginTop:12}}>
             <span className="small muted">Selected: {media.name}</span>
+            <div className="col" style={{gap:8, marginTop:10}}>
+              <label className="small">Overlay text (optional)</label>
+              <input value={text} onChange={(e)=>setText(e.target.value)} placeholder="Say something..." />
+              <div className="row gap" style={{alignItems:'center'}}>
+                <label className="small">Text color</label>
+                <input type="color" value={textColor} onChange={(e)=>setTextColor(e.target.value)} />
+                <label className="small">Background</label>
+                <input type="color" value={textBg} onChange={(e)=>setTextBg(e.target.value)} />
+                <label className="small">Position</label>
+                <select value={textPos} onChange={(e)=>setTextPos(e.target.value)}>
+                  <option value="top">Top</option>
+                  <option value="center">Center</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
       </div>
