@@ -36,4 +36,6 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
   postForm: (path, formData) => request(path, { method: 'POST', body: formData }),
   del: (path) => request(path, { method: 'DELETE' }),
+  patch: (path, body) => request(path, { method: 'PATCH', body: body instanceof FormData ? body : JSON.stringify(body) }),
+  patchForm: (path, formData) => request(path, { method: 'PATCH', body: formData }),
 }
