@@ -112,3 +112,26 @@ router.get('/me', authRequired, async (req, res) => {
 });
 
 module.exports = router;
+
+// PATCH /api/auth/password - change password for logged-in user
+router.patch('/password', authRequired, [
+  body('current_password').notEmpty().withMessage('Current password required'),
+  body('new_password').isLength({ min: 6 }).withMessage('New password min 6 chars'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { current_password, new_password } = req.body;
+  try {
+    const [[user]] = await pool.query('SELECT id, password_hash FROM users WHERE id = ?', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const ok = await bcrypt.compare(current_password, user.password_hash);
+    if (!ok) return res.status(400).json({ error: 'Current password incorrect' });
+    const newHash = await bcrypt.hash(new_password, 10);
+    await pool.execute('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, req.user.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});

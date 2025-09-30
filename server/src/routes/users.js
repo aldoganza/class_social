@@ -16,7 +16,63 @@ const storage = multer.diskStorage({
     cb(null, unique + ext)
   }
 })
+
+// GET current user's settings
+router.get('/me/settings', authRequired, async (req, res) => {
+  try {
+    await ensureUserSettings()
+    const [[row]] = await pool.query('SELECT privacy_private, messages_followers_only, email_notifications FROM user_settings WHERE user_id = ?', [req.user.id])
+    if (!row) {
+      // Return defaults
+      return res.json({ privacy_private: 0, messages_followers_only: 0, email_notifications: 1 })
+    }
+    res.json(row)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// PATCH current user's settings
+router.patch('/me/settings', authRequired, async (req, res) => {
+  try {
+    await ensureUserSettings()
+    const { privacy_private, messages_followers_only, email_notifications } = req.body || {}
+    // Normalize to 0/1
+    const vals = {
+      privacy_private: Number(!!privacy_private),
+      messages_followers_only: Number(!!messages_followers_only),
+      email_notifications: Number(!!email_notifications),
+    }
+    await pool.execute(`
+      INSERT INTO user_settings (user_id, privacy_private, messages_followers_only, email_notifications)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        privacy_private = VALUES(privacy_private),
+        messages_followers_only = VALUES(messages_followers_only),
+        email_notifications = VALUES(email_notifications)
+    `, [req.user.id, vals.privacy_private, vals.messages_followers_only, vals.email_notifications])
+    res.json(vals)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
 const upload = multer({ storage })
+
+async function ensureUserSettings() {
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS user_settings (
+      user_id INT PRIMARY KEY,
+      privacy_private TINYINT(1) DEFAULT 0,
+      messages_followers_only TINYINT(1) DEFAULT 0,
+      email_notifications TINYINT(1) DEFAULT 1,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+}
 
 // Get user by id
 router.get('/:id', authRequired, async (req, res) => {
