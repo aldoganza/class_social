@@ -34,6 +34,7 @@ export default function Settings() {
       setName(user.name || '')
       setEmail(user.email || '')
     }
+  }, [user])
 
   // Load existing settings
   useEffect(() => {
@@ -85,7 +86,6 @@ export default function Settings() {
       setPwMsg(e.message || 'Failed to change password')
     } finally { setPwSaving(false) }
   }
-  }, [user])
 
   const onSelectTheme = (v) => setTheme(v)
 
@@ -202,7 +202,6 @@ export default function Settings() {
               {pwMsg && <span className="muted small">{pwMsg}</span>}
             </div>
           </form>
-        </div>
         </div>
       </div>
     </div>
