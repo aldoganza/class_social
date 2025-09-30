@@ -7,7 +7,7 @@ export default function Settings() {
   const { theme, toggleTheme, setTheme } = useTheme()
   const { user, setUser } = useAuth()
   const [name, setName] = useState(user?.name || '')
-  const [email] = useState(user?.email || '')
+  const [email, setEmail] = useState(user?.email || '')
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(user?.profile_pic || '')
   const [saved, setSaved] = useState('')
