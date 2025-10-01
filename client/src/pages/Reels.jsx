@@ -45,9 +45,11 @@ export default function Reels() {
         ) : (
           <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, 260px)', justifyContent:'center', gap:12}}>
             {list.map(r => (
-              <div key={r.id} className="reel-item" style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden', display:'flex', flexDirection:'column', width:260, cursor:'pointer'}} onClick={()=>setViewer(r)}>
-                <video src={r.video_url} controls style={{width:'100%', height:460, objectFit:'cover', background:'#000'}} />
-                <div className="row between" style={{padding:8, alignItems:'center'}}>
+              <div key={r.id} className="reel-item" style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden', display:'flex', flexDirection:'column', width:260, height:560, cursor:'pointer'}} onClick={()=>setViewer(r)}>
+                <div style={{width:'100%', height:460, background:'#000'}}>
+                  <video src={r.video_url} controls style={{width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000'}} />
+                </div>
+                <div className="row between" style={{padding:8, alignItems:'center', minHeight:44}}>
                   <div className="row gap" style={{alignItems:'center'}}>
                     <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
                     <div className="small bold">{r.name}</div>
@@ -56,7 +58,11 @@ export default function Reels() {
                     <button className="btn btn-light" onClick={(e)=>{e.stopPropagation(); deleteReel(r.id)}}>Delete</button>
                   )}
                 </div>
-                {r.caption && <div className="small" style={{padding:'0 8px 8px 8px'}}>{r.caption}</div>}
+                {r.caption && (
+                  <div className="small" style={{padding:'0 8px 8px 8px', height:44, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical'}}>
+                    {r.caption}
+                  </div>
+                )}
               </div>
             ))}
             {list.length === 0 && <div className="muted">No reels yet.</div>}
@@ -66,7 +72,7 @@ export default function Reels() {
 
       {viewer && (
         <div className="modal" onClick={()=>setViewer(null)}>
-          <div className="modal-content" onClick={(e)=>e.stopPropagation()} style={{maxWidth:420, padding:0, overflow:'hidden'}}>
+          <div className="modal-content" onClick={(e)=>e.stopPropagation()} style={{width:360, maxWidth:'90vw', padding:0, overflow:'hidden'}}>
             <div className="row between" style={{padding:'8px 10px', alignItems:'center', borderBottom:'1px solid var(--border)'}}>
               <div className="row gap" style={{alignItems:'center'}}>
               </div>
@@ -75,7 +81,7 @@ export default function Reels() {
               </button>
             </div>
             <div style={{ background: '#000' }}>
-              <video src={viewer.video_url} controls autoPlay style={{width:'100%', height:520, objectFit:'cover', display:'block'}} />
+              <video src={viewer.video_url} controls autoPlay style={{width:'100%', height:640, objectFit:'cover', display:'block'}} />
             </div>
             {viewer.caption && <div className="small" style={{padding:10}}>{viewer.caption}</div>}
           </div>
