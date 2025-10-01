@@ -7,9 +7,6 @@ export default function Reels() {
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [video, setVideo] = useState(null)
-  const [caption, setCaption] = useState('')
-  const [uploading, setUploading] = useState(false)
 
   const load = async () => {
     try {
@@ -23,28 +20,6 @@ export default function Reels() {
 
   useEffect(() => { load() }, [])
 
-  const onVideo = (e) => {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setVideo(f)
-  }
-
-  const postReel = async () => {
-    if (!video) return
-    setUploading(true)
-    setError('')
-    try {
-      const fd = new FormData()
-      fd.append('video', video)
-      if (caption && caption.trim()) fd.append('caption', caption.trim())
-      await api.postForm('/reels', fd)
-      setVideo(null); setCaption('')
-      await load()
-    } catch (e) {
-      setError(e.message)
-    } finally { setUploading(false) }
-  }
-
   const deleteReel = async (id) => {
     try {
       await api.del(`/reels/${id}`)
@@ -55,21 +30,6 @@ export default function Reels() {
   return (
     <div className="page">
       <div className="card">
-        <h2 className="title">Reels</h2>
-        {error && <div className="error">{error}</div>}
-        {/* Upload */}
-        <div className="col" style={{gap:8}}>
-          <div className="row gap" style={{alignItems:'center'}}>
-            <label className="btn btn-light" htmlFor="reel-video">Choose video</label>
-            <input id="reel-video" type="file" accept="video/*" onChange={onVideo} style={{display:'none'}} />
-            <input value={caption} onChange={(e)=>setCaption(e.target.value)} placeholder="Caption (optional)" style={{flex:1}} />
-            <button className="btn btn-primary" onClick={postReel} disabled={!video || uploading}>{uploading ? 'Uploading...' : 'Post Reel'}</button>
-          </div>
-          {video && <span className="small muted">Selected: {video.name}</span>}
-        </div>
-      </div>
-
-      <div className="card" style={{marginTop:12}}>
         <h3 style={{marginTop:0}}>Latest</h3>
         {loading ? (
           <div className="muted">Loading...</div>
