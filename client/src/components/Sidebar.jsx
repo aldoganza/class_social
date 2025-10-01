@@ -84,6 +84,7 @@ export default function Sidebar() {
         {user && link('/search', 'Search', <SearchIcon />)}
         {user && link('/chat', 'Messages', <MessageIcon />, null, { withBadge: 'messages' })}
         {user && link('/create', 'Create', <CreateIcon />)}
+        {user && link('/reels', 'Reels', <ReelsIcon />)}
         {user && link('/notifications', 'Notifications', <HeartIcon />, null, { withBadge: 'notifications' })}
         {user && link(`/profile/${user.id}`, 'Profile', <UserIcon />)}
         {user && link('/settings', 'Settings', <SettingsIcon />)}
@@ -170,6 +171,15 @@ function CreateIcon() {
       <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
       <line x1="12" y1="7" x2="12" y2="17" />
       <line x1="7" y1="12" x2="17" y2="12" />
+    </SvgBase>
+  )
+}
+
+function ReelsIcon() {
+  return (
+    <SvgBase>
+      <rect x="3" y="3" width="18" height="18" rx="4" ry="4" />
+      <polygon points="10,8 16,12 10,16" />
     </SvgBase>
   )
 }
