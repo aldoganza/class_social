@@ -11,6 +11,10 @@ export default function Create() {
   const [error, setError] = useState('')
   const [ok, setOk] = useState('')
   const [uploading, setUploading] = useState(false)
+  // Reels
+  const [reelVideo, setReelVideo] = useState(null)
+  const [reelCaption, setReelCaption] = useState('')
+  const [reelUploading, setReelUploading] = useState(false)
 
   const onFile = (e) => {
     const f = e.target.files?.[0]
@@ -18,10 +22,33 @@ export default function Create() {
     setMedia(f)
   }
 
+  const postReel = async () => {
+    if (!reelVideo) return
+    setReelUploading(true)
+    setError('')
+    try {
+      const fd = new FormData()
+      fd.append('video', reelVideo)
+      if (reelCaption && reelCaption.trim()) fd.append('caption', reelCaption.trim())
+      await api.postForm('/reels', fd)
+      setOk('Reel posted!')
+      setReelVideo(null); setReelCaption('')
+      setTimeout(()=>setOk(''), 1500)
+    } catch (e) {
+      setError(e.message)
+    } finally { setReelUploading(false) }
+  }
+
   const onAudio = (e) => {
     const f = e.target.files?.[0]
     if (!f) return
     setAudio(f)
+  }
+
+  const onReelVideo = (e) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setReelVideo(f)
   }
 
   const postStory = async () => {
