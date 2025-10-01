@@ -7,6 +7,7 @@ export default function Reels() {
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [viewer, setViewer] = useState(null) // selected reel for modal
 
   const load = async () => {
     try {
@@ -27,24 +28,32 @@ export default function Reels() {
     } catch (e) { setError(e.message) }
   }
 
+  // Close viewer on Escape
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setViewer(null)
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [])
+
   return (
     <div className="page">
       <div className="card">
-        <h3 style={{marginTop:0}}>Latest</h3>
         {loading ? (
           <div className="muted">Loading...</div>
         ) : (
-          <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:12}}>
+          <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, 260px)', justifyContent:'center', gap:12}}>
             {list.map(r => (
-              <div key={r.id} className="reel-item" style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden', display:'flex', flexDirection:'column'}}>
-                <video src={r.video_url} controls style={{width:'100%', height:320, objectFit:'cover', background:'#000'}} />
+              <div key={r.id} className="reel-item" style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden', display:'flex', flexDirection:'column', width:260, cursor:'pointer'}} onClick={()=>setViewer(r)}>
+                <video src={r.video_url} controls style={{width:'100%', height:460, objectFit:'cover', background:'#000'}} />
                 <div className="row between" style={{padding:8, alignItems:'center'}}>
                   <div className="row gap" style={{alignItems:'center'}}>
                     <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
                     <div className="small bold">{r.name}</div>
                   </div>
                   {user && user.id === r.user_id && (
-                    <button className="btn btn-light" onClick={()=>deleteReel(r.id)}>Delete</button>
+                    <button className="btn btn-light" onClick={(e)=>{e.stopPropagation(); deleteReel(r.id)}}>Delete</button>
                   )}
                 </div>
                 {r.caption && <div className="small" style={{padding:'0 8px 8px 8px'}}>{r.caption}</div>}
@@ -54,6 +63,34 @@ export default function Reels() {
           </div>
         )}
       </div>
+
+      {viewer && (
+        <div className="modal" onClick={()=>setViewer(null)}>
+          <div className="modal-content" onClick={(e)=>e.stopPropagation()} style={{maxWidth:420, padding:0, overflow:'hidden'}}>
+            <div className="row between" style={{padding:'8px 10px', alignItems:'center', borderBottom:'1px solid var(--border)'}}>
+              <div className="row gap" style={{alignItems:'center'}}>
+                <img src={viewer.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
+              </div>
+              <button className="icon-btn" aria-label="Close" title="Close" onClick={()=>setViewer(null)}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div style={{background:'#000}}>
+              <video src={viewer.video_url} controls autoPlay style={{width:'100%', height:520, objectFit:'cover', display:'block'}} />
+            </div>
+            {viewer.caption && <div className="small" style={{padding:10}}>{viewer.caption}</div>}
+          </div>
+        </div>
+      )}
     </div>
   )
-}
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setViewer(null)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [])
