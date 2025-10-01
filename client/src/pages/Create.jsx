@@ -113,6 +113,17 @@ export default function Create() {
           </div>
         )}
       </div>
+
+      <div className="card" style={{marginTop:12}}>
+        <h3 style={{marginTop:0}}>Post a Reel</h3>
+        <div className="row gap" style={{alignItems:'center'}}>
+          <label className="btn btn-light" htmlFor="reel-video">Choose video</label>
+          <input id="reel-video" type="file" accept="video/*" onChange={onReelVideo} style={{display:'none'}} />
+          <input value={reelCaption} onChange={(e)=>setReelCaption(e.target.value)} placeholder="Caption (optional)" style={{flex:1}} />
+          <button className="btn btn-primary" disabled={!reelVideo || reelUploading} onClick={postReel}>{reelUploading? 'Uploading...' : 'Post Reel'}</button>
+        </div>
+        {reelVideo && <span className="small muted">Selected: {reelVideo.name}</span>}
+      </div>
     </div>
   )
 }
