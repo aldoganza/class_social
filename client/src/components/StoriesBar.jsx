@@ -458,8 +458,8 @@ export default function StoriesBar() {
                 </div>
               )}
 
-              {/* Optional text overlay */}
-              {currentStory.text && (
+              {/* Optional caption/text overlay */}
+              {(currentStory.caption || currentStory.text) && (
                 <div
                   className="story-text-overlay"
                   style={{
@@ -486,7 +486,7 @@ export default function StoriesBar() {
                       boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
                     }}
                   >
-                    {currentStory.text}
+                    {currentStory.caption || currentStory.text}
                   </span>
                 </div>
               )}
