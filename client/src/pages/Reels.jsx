@@ -69,13 +69,12 @@ export default function Reels() {
           <div className="modal-content" onClick={(e)=>e.stopPropagation()} style={{maxWidth:420, padding:0, overflow:'hidden'}}>
             <div className="row between" style={{padding:'8px 10px', alignItems:'center', borderBottom:'1px solid var(--border)'}}>
               <div className="row gap" style={{alignItems:'center'}}>
-                <img src={viewer.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
               </div>
               <button className="icon-btn" aria-label="Close" title="Close" onClick={()=>setViewer(null)}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
-            <div style={{background:'#000}}>
+            <div style={{ background: '#000' }}>
               <video src={viewer.video_url} controls autoPlay style={{width:'100%', height:520, objectFit:'cover', display:'block'}} />
             </div>
             {viewer.caption && <div className="small" style={{padding:10}}>{viewer.caption}</div>}
@@ -84,13 +83,3 @@ export default function Reels() {
       )}
     </div>
   )
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        setViewer(null)
-      }
-    }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [])
