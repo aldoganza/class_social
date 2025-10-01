@@ -14,6 +14,7 @@ const messagesRoutes = require('./routes/messages');
 const usersRoutes = require('./routes/users');
 const notificationsRoutes = require('./routes/notifications');
 const storiesRoutes = require('./routes/stories');
+const reelsRoutes = require('./routes/reels');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/messages', messagesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/stories', storiesRoutes);
+app.use('/api/reels', reelsRoutes);
 
 // Start server after verifying DB
 const PORT = process.env.PORT || 4000;
