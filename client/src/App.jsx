@@ -6,6 +6,7 @@ import Profile from './pages/Profile.jsx'
 import Chat from './pages/Chat.jsx'
 import Search from './pages/Search.jsx'
 import Notifications from './pages/Notifications.jsx'
+import Reels from './pages/Reels.jsx'
 import Create from './pages/Create.jsx'
 import Settings from './pages/Settings.jsx'
 import Sidebar from './components/Sidebar.jsx'
@@ -85,6 +86,15 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Create />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/reels"
+                element={
+                  <ProtectedRoute>
+                    <Reels />
                   </ProtectedRoute>
                 }
               />
