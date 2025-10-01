@@ -56,10 +56,10 @@ async function ensureStoriesTable() {
 }
 
 async function ensureStoryTextColumns() {
-  // Add optional text overlay columns if they don't exist
+  // Add optional caption overlay columns if they don't exist
   await pool.execute(`
     ALTER TABLE stories
-      ADD COLUMN IF NOT EXISTS text VARCHAR(280) NULL,
+      ADD COLUMN IF NOT EXISTS caption VARCHAR(280) NULL,
       ADD COLUMN IF NOT EXISTS text_color VARCHAR(16) NULL,
       ADD COLUMN IF NOT EXISTS text_bg VARCHAR(16) NULL,
       ADD COLUMN IF NOT EXISTS text_pos ENUM('top','center','bottom') NULL DEFAULT 'bottom'
@@ -109,13 +109,15 @@ router.post('/', authRequired, upload.fields([{ name: 'media', maxCount: 1 }, { 
 
     const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    const text = (req.body && typeof req.body.text === 'string') ? req.body.text.slice(0, 280) : null
+    // Accept either 'caption' (preferred) or legacy 'text' from client
+    const captionRaw = req.body && (req.body.caption ?? req.body.text)
+    const text = (typeof captionRaw === 'string') ? captionRaw.slice(0, 280) : null
     const text_color = (req.body && req.body.text_color) || null
     const text_bg = (req.body && req.body.text_bg) || null
     const text_pos = (req.body && req.body.text_pos) || 'bottom'
 
     const [result] = await pool.execute(
-      'INSERT INTO stories (user_id, media_url, media_type, audio_url, expires_at, text, text_color, text_bg, text_pos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO stories (user_id, media_url, media_type, audio_url, expires_at, caption, text_color, text_bg, text_pos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [req.user.id, media_url, media_type, audio_url, expires_at, text, text_color, text_bg, text_pos]
     )
 

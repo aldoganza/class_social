@@ -33,7 +33,11 @@ export default function Create() {
       const fd = new FormData()
       fd.append('media', media)
       if (audio) fd.append('audio', audio)
-      if (text && text.trim()) fd.append('text', text.trim())
+      if (text && text.trim()) {
+        const v = text.trim()
+        fd.append('caption', v) // preferred
+        fd.append('text', v)     // legacy fallback
+      }
       if (textColor) fd.append('text_color', textColor)
       if (textBg) fd.append('text_bg', textBg)
       if (textPos) fd.append('text_pos', textPos)
