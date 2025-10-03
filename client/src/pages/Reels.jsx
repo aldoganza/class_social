@@ -13,6 +13,12 @@ export default function Reels() {
   const [commentsOpen, setCommentsOpen] = useState(null) // reel id or null
   const [comments, setComments] = useState({}) // {id: list}
   const [newComment, setNewComment] = useState('')
+  const [likePulse, setLikePulse] = useState({}) // {id: boolean}
+
+  const formatCount = (n) => {
+    const num = Number(n || 0)
+    return Intl.NumberFormat('en', { notation: 'compact' }).format(num)
+  }
 
   const load = async () => {
     try {
@@ -29,8 +35,11 @@ export default function Reels() {
     setLikeAnim(m => ({ ...m, [r.id]: true }))
     setTimeout(() => setLikeAnim(m => ({ ...m, [r.id]: false })), 900)
     // Like if not liked yet
-    if (!r.liked_by_me) await toggleLike(r)
-    else spawnHearts(r.id, 6)
+    if (!r.liked_by_me) {
+      toggleLike({ ...r, liked_by_me: false })
+    } else {
+      spawnHearts(r.id, 6)
+    }
   }
 
   const toggleSave = async (r) => {
@@ -70,14 +79,25 @@ export default function Reels() {
   }
 
   const toggleLike = async (r) => {
+    const liked = !!r.liked_by_me
+    // Optimistic update
+    setList(list => list.map(x => x.id === r.id ? { ...x, liked_by_me: !liked, likes_count: (x.likes_count || 0) + (liked ? -1 : 1) } : x))
+    if (!liked) {
+      spawnHearts(r.id, 8)
+      setLikePulse(p => ({ ...p, [r.id]: true }))
+      setTimeout(() => setLikePulse(p => ({ ...p, [r.id]: false })), 220)
+    }
     try {
-      const liked = !!r.liked_by_me
       let res
       if (liked) res = await api.del(`/reels/${r.id}/like`)
       else res = await api.post(`/reels/${r.id}/like`, {})
-      setList(list => list.map(x => x.id === r.id ? { ...x, liked_by_me: !liked, likes_count: res.likes_count } : x))
-      if (!liked) spawnHearts(r.id, 8)
-    } catch (e) { setError(e.message) }
+      // Reconcile exact server count
+      setList(list => list.map(x => x.id === r.id ? { ...x, likes_count: res.likes_count } : x))
+    } catch (e) {
+      // Rollback on error
+      setList(list => list.map(x => x.id === r.id ? { ...x, liked_by_me: liked, likes_count: (x.likes_count || 0) + (liked ? 1 : -1) } : x))
+      setError(e.message)
+    }
   }
 
   const shareReel = async (r) => {
@@ -152,10 +172,18 @@ export default function Reels() {
               </button>
               {/* Right-side action column */}
               <div style={{position:'absolute', right:-56, top:80, display:'flex', flexDirection:'column', alignItems:'center', gap:14}}>
-                <button className="icon-btn" title="Like" aria-label="Like" onClick={()=>toggleLike(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke={r.liked_by_me ? 'red' : '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/></svg>
+                <button className="icon-btn" title="Like" aria-label="Like" onClick={()=>toggleLike(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10, transform: likePulse[r.id] ? 'scale(1.2)' : 'scale(1)', transition:'transform 0.18s ease'}}>
+                  {r.liked_by_me ? (
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="red">
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                    </svg>
+                  )}
                 </button>
-                <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{Number(r.likes_count || 0)}</div>
+                <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{formatCount(r.likes_count)}</div>
                 <button className="icon-btn" title="Comments" aria-label="Comments" onClick={()=>openComments(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z"/></svg>
                 </button>
