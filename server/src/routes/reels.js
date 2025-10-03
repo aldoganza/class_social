@@ -74,6 +74,25 @@ router.get('/', authRequired, async (req, res) => {
   }
 });
 
+// GET /api/reels/user/:id - reels by user
+router.get('/user/:id', authRequired, async (req, res) => {
+  try {
+    await ensureReelsTable();
+    const userId = Number(req.params.id);
+    const [rows] = await pool.execute(
+      `SELECT r.*, u.name, u.profile_pic
+       FROM reels r JOIN users u ON u.id = r.user_id
+       WHERE r.user_id = ?
+       ORDER BY r.created_at DESC LIMIT 100`,
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // DELETE /api/reels/:id - delete own reel
 router.delete('/:id', authRequired, async (req, res) => {
   try {
