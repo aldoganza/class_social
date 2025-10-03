@@ -23,6 +23,16 @@ export default function Reels() {
     } finally { setLoading(false) }
   }
 
+  const toggleSave = async (r) => {
+    try {
+      const saved = !!r.saved_by_me
+      let res
+      if (saved) res = await api.del(`/reels/${r.id}/save`)
+      else res = await api.post(`/reels/${r.id}/save`, {})
+      setList(list => list.map(x => x.id === r.id ? { ...x, saved_by_me: !saved, saves_count: res.saves_count } : x))
+    } catch (e) { setError(e.message) }
+  }
+
   useEffect(() => { load() }, [])
 
   const deleteReel = async (id) => {
@@ -123,16 +133,26 @@ export default function Reels() {
               {/* Right-side action column */}
               <div style={{position:'absolute', right:-56, top:80, display:'flex', flexDirection:'column', alignItems:'center', gap:14}}>
                 <button className="icon-btn" title="Like" aria-label="Like" onClick={()=>toggleLike(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill={r.liked_by_me ? 'red' : '#fff'}><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/></svg>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke={r.liked_by_me ? 'red' : '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/></svg>
                 </button>
                 <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{Number(r.likes_count || 0)}</div>
                 <button className="icon-btn" title="Comments" aria-label="Comments" onClick={()=>openComments(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z"/></svg>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z"/></svg>
                 </button>
                 <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{Number(r.comments_count || 0)}</div>
                 <button className="icon-btn" title="Share" aria-label="Share" onClick={()=>shareReel(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M22 2 11 13 15 22 11 13 2 9 22 2"/></svg>
+                  <svg viewBox="0 0 24 24" width="22" height="22">
+                    <polygon points="22,2 2,9 11,13 15,22 22,2" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </button>
+                <button className="icon-btn" title="Save" aria-label="Save" onClick={()=>toggleSave(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
+                  {r.saved_by_me ? (
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  )}
+                </button>
+                <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{Number(r.saves_count || 0)}</div>
               </div>
               {/* Like heart burst */}
               {(hearts[r.id]?.length > 0) && (

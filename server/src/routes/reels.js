@@ -16,6 +16,42 @@ const storage = multer.diskStorage({
     cb(null, unique + ext)
   }
 });
+
+// Save a reel
+router.post('/:id/save', authRequired, async (req, res) => {
+  try {
+    await ensureReelsExtras();
+    const reelId = Number(req.params.id);
+    await pool.execute('INSERT IGNORE INTO reels_saves (user_id, reel_id) VALUES (?, ?)', [req.user.id, reelId]);
+    const [[metrics]] = await pool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM reels_saves WHERE reel_id = ?) AS saves_count`,
+      [reelId]
+    );
+    res.json({ success: true, saved: true, ...metrics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Unsave a reel
+router.delete('/:id/save', authRequired, async (req, res) => {
+  try {
+    await ensureReelsExtras();
+    const reelId = Number(req.params.id);
+    await pool.execute('DELETE FROM reels_saves WHERE user_id = ? AND reel_id = ?', [req.user.id, reelId]);
+    const [[metrics]] = await pool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM reels_saves WHERE reel_id = ?) AS saves_count`,
+      [reelId]
+    );
+    res.json({ success: true, saved: false, ...metrics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 const upload = multer({ storage });
 
 async function ensureReelsTable() {
@@ -28,6 +64,17 @@ async function ensureReelsTable() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_user_time (user_id, created_at),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS reels_saves (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      reel_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_save (user_id, reel_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (reel_id) REFERENCES reels(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
 }
@@ -94,10 +141,12 @@ router.get('/', authRequired, async (req, res) => {
       `SELECT r.*, u.name, u.profile_pic,
         (SELECT COUNT(*) FROM reels_likes rl WHERE rl.reel_id = r.id) AS likes_count,
         (SELECT COUNT(*) FROM reels_comments rc WHERE rc.reel_id = r.id) AS comments_count,
-        EXISTS(SELECT 1 FROM reels_likes rl2 WHERE rl2.reel_id = r.id AND rl2.user_id = ?) AS liked_by_me
+        (SELECT COUNT(*) FROM reels_saves rs WHERE rs.reel_id = r.id) AS saves_count,
+        EXISTS(SELECT 1 FROM reels_likes rl2 WHERE rl2.reel_id = r.id AND rl2.user_id = ?) AS liked_by_me,
+        EXISTS(SELECT 1 FROM reels_saves rs2 WHERE rs2.reel_id = r.id AND rs2.user_id = ?) AS saved_by_me
        FROM reels r JOIN users u ON u.id = r.user_id
        ORDER BY r.created_at DESC LIMIT 100`,
-      [req.user.id]
+      [req.user.id, req.user.id]
     );
     res.json(rows);
   } catch (err) {
@@ -116,11 +165,13 @@ router.get('/user/:id', authRequired, async (req, res) => {
       `SELECT r.*, u.name, u.profile_pic,
         (SELECT COUNT(*) FROM reels_likes rl WHERE rl.reel_id = r.id) AS likes_count,
         (SELECT COUNT(*) FROM reels_comments rc WHERE rc.reel_id = r.id) AS comments_count,
-        EXISTS(SELECT 1 FROM reels_likes rl2 WHERE rl2.reel_id = r.id AND rl2.user_id = ?) AS liked_by_me
+        (SELECT COUNT(*) FROM reels_saves rs WHERE rs.reel_id = r.id) AS saves_count,
+        EXISTS(SELECT 1 FROM reels_likes rl2 WHERE rl2.reel_id = r.id AND rl2.user_id = ?) AS liked_by_me,
+        EXISTS(SELECT 1 FROM reels_saves rs2 WHERE rs2.reel_id = r.id AND rs2.user_id = ?) AS saved_by_me
        FROM reels r JOIN users u ON u.id = r.user_id
        WHERE r.user_id = ?
        ORDER BY r.created_at DESC LIMIT 100`,
-      [req.user.id, userId]
+      [req.user.id, req.user.id, userId]
     );
     res.json(rows);
   } catch (err) {
