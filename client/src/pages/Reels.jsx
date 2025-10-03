@@ -9,6 +9,7 @@ export default function Reels() {
   const [error, setError] = useState('')
   const [mutedMap, setMutedMap] = useState({}) // {id: boolean}
   const [hearts, setHearts] = useState({}) // {id: Array<{id,size,dx,duration,delay}>}
+  const [likeAnim, setLikeAnim] = useState({}) // {id: boolean} big heart center
   const [commentsOpen, setCommentsOpen] = useState(null) // reel id or null
   const [comments, setComments] = useState({}) // {id: list}
   const [newComment, setNewComment] = useState('')
@@ -21,6 +22,15 @@ export default function Reels() {
     } catch (e) {
       setError(e.message)
     } finally { setLoading(false) }
+  }
+
+  const handleDoubleLike = async (r) => {
+    // Show big heart
+    setLikeAnim(m => ({ ...m, [r.id]: true }))
+    setTimeout(() => setLikeAnim(m => ({ ...m, [r.id]: false })), 900)
+    // Like if not liked yet
+    if (!r.liked_by_me) await toggleLike(r)
+    else spawnHearts(r.id, 6)
   }
 
   const toggleSave = async (r) => {
@@ -106,7 +116,7 @@ export default function Reels() {
           const isMuted = !!mutedMap[r.id]
           return (
             <div key={r.id} style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)', marginBottom:40}}>
-              <div style={{borderRadius:16, overflow:'hidden', background:'#000'}}>
+              <div style={{borderRadius:16, overflow:'hidden', background:'#000'}} onDoubleClick={()=>handleDoubleLike(r)}>
                 <video
                   src={r.video_url}
                   autoPlay
@@ -117,6 +127,16 @@ export default function Reels() {
                   style={{width:'100%', height:600, objectFit:'cover', display:'block'}}
                 />
               </div>
+              {/* Single big heart animation */}
+              {likeAnim[r.id] && (
+                <div aria-hidden style={{position:'absolute', left:0, right:0, top:0, bottom:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none'}}>
+                  <span style={{display:'inline-block', animation:'likeFloat 0.9s ease-out forwards'}}>
+                    <svg viewBox="0 0 24 24" width="90" height="90" fill="red">
+                      <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
+                    </svg>
+                  </span>
+                </div>
+              )}
               <button
                 className="icon-btn"
                 title={isMuted ? 'Unmute' : 'Mute'}
