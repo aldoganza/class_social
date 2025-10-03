@@ -99,13 +99,13 @@ export default function Reels() {
 
   return (
     <div className="page" style={{display:'flex', justifyContent:'center'}}>
-      <div className="col" style={{gap:24, alignItems:'center', width:'100%'}}>
+      <div className="col" style={{gap:40, alignItems:'center', width:'100%'}}>
         {loading && <div className="muted">Loading...</div>}
         {!loading && list.length === 0 && <div className="muted">No reels yet.</div>}
         {!loading && list.map(r => {
           const isMuted = !!mutedMap[r.id]
           return (
-            <div key={r.id} style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)'}}>
+            <div key={r.id} style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)', marginBottom:40}}>
               <div style={{borderRadius:16, overflow:'hidden', background:'#000'}}>
                 <video
                   src={r.video_url}
