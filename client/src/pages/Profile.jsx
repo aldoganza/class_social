@@ -11,13 +11,14 @@ export default function Profile() {
   const { user: me } = useAuth()
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
+  const [reels, setReels] = useState([])
   const [error, setError] = useState('')
   const [isFollowing, setIsFollowing] = useState(false)
   const [loadingFollow, setLoadingFollow] = useState(false)
   const [stats, setStats] = useState({ followers: 0, following: 0, posts: 0 })
   const [followers, setFollowers] = useState([])
   const [following, setFollowing] = useState([])
-  const [tab, setTab] = useState('posts') // 'posts' | 'followers' | 'following'
+  const [tab, setTab] = useState('posts') // 'posts' | 'reels' | 'followers' | 'following'
   const [newContent, setNewContent] = useState('')
   const [newImage, setNewImage] = useState(null)
 
@@ -35,6 +36,8 @@ export default function Profile() {
         setUser(u)
         const ps = await api.get(`/posts/user/${id}`)
         setPosts(ps)
+        const rs = await api.get(`/reels/user/${id}`)
+        setReels(rs)
         // Determine follow status (if viewing someone else's profile)
         if (me && String(me.id) !== String(id)) {
           const following = await api.get('/follow/following')
@@ -105,6 +108,16 @@ export default function Profile() {
     }
   }
 
+  const deleteReel = async (reelId) => {
+    if (!confirm('Delete this reel?')) return
+    try {
+      await api.del(`/reels/${reelId}`)
+      setReels((r) => r.filter((x) => x.id !== reelId))
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   if (!user) return <div className="page"><div className="card">Loading...</div></div>
 
   return (
@@ -132,6 +145,7 @@ export default function Profile() {
 
       <div className="card row gap">
         <button className={`btn ${tab==='posts'?'btn-primary':'btn-light'}`} onClick={() => setTab('posts')}>Posts</button>
+        <button className={`btn ${tab==='reels'?'btn-primary':'btn-light'}`} onClick={() => setTab('reels')}>Reels</button>
         <button className={`btn ${tab==='followers'?'btn-primary':'btn-light'}`} onClick={() => setTab('followers')}>Followers</button>
         <button className={`btn ${tab==='following'?'btn-primary':'btn-light'}`} onClick={() => setTab('following')}>Following</button>
       </div>
@@ -165,6 +179,29 @@ export default function Profile() {
             ))}
           </div>
         </>
+      )}
+
+      {tab === 'reels' && (
+        <div className="card">
+          {reels.length === 0 && <div className="muted">No reels yet.</div>}
+          <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, 260px)', gap:12}}>
+            {reels.map(r => (
+              <div key={r.id} style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden'}}>
+                <video src={r.video_url} controls style={{width:'100%', height:360, objectFit:'cover', background:'#000'}} />
+                <div className="row between" style={{padding:8, alignItems:'center'}}>
+                  <div className="row gap" style={{alignItems:'center'}}>
+                    <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
+                    <div className="small bold">{r.name}</div>
+                  </div>
+                  {me && String(me.id) === String(id) && (
+                    <button className="btn btn-light" onClick={() => deleteReel(r.id)}>Delete</button>
+                  )}
+                </div>
+                {r.caption && <div className="small" style={{padding:'0 8px 10px 8px'}}>{r.caption}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {tab === 'followers' && (

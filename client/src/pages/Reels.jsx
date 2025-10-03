@@ -74,9 +74,7 @@ export default function Reels() {
                   </div>
                 )}
               </div>
-              {user && user.id === r.user_id && (
-                <button className="btn btn-light" onClick={()=>deleteReel(r.id)} style={{position:'absolute', left:12, top:12}}>Delete</button>
-              )}
+              {/* Deletion moved to Profile page */}
             </div>
           )
         })}
