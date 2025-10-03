@@ -76,7 +76,7 @@ export default function Reels() {
         <div className="modal" onClick={()=>setViewer(null)}>
           <div className="modal-content" onClick={(e)=>e.stopPropagation()} style={{background:'transparent', boxShadow:'none', padding:0}}>
             <div className="row center" style={{gap:16}}>
-              {/* Video column */}
+              {/* Video column only */}
               <div style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)'}}>
                 <div style={{borderRadius:16, overflow:'hidden', background:'#000'}}>
                   <video
@@ -108,7 +108,6 @@ export default function Reels() {
                   <div className="row gap" style={{alignItems:'center'}}>
                     <img src={viewer.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
                     <div className="small bold" style={{color:'#fff'}}>{viewer.name}</div>
-                    <button className="btn" style={{padding:'4px 8px'}}>Follow</button>
                   </div>
                   {viewer.caption && (
                     <div className="small" style={{color:'#fff', marginTop:6, textShadow:'0 1px 2px rgba(0,0,0,0.5)'}}>
@@ -117,21 +116,7 @@ export default function Reels() {
                   )}
                 </div>
               </div>
-              {/* Right-side action bar (placeholders) */}
-              <div className="col" style={{alignItems:'center', gap:16}}>
-                <button className="icon-btn" title="Like" aria-label="Like" style={{background:'rgba(0,0,0,0.4)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/></svg>
-                </button>
-                <button className="icon-btn" title="Comment" aria-label="Comment" style={{background:'rgba(0,0,0,0.4)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z"/></svg>
-                </button>
-                <button className="icon-btn" title="Share" aria-label="Share" style={{background:'rgba(0,0,0,0.4)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M22 2 11 13 15 22 11 13 2 9 22 2"/></svg>
-                </button>
-                <button className="icon-btn" title="Close" aria-label="Close" onClick={()=>setViewer(null)} style={{background:'rgba(0,0,0,0.4)', borderRadius:999, padding:10}}>
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </button>
-              </div>
+              {/* No right-side action bar to match the provided design */}
             </div>
           </div>
         </div>
