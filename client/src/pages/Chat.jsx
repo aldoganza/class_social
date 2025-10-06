@@ -200,36 +200,42 @@ export default function Chat() {
                 const prevDateStr = prev ? new Date(prev.created_at).toDateString() : null
                 const showSeparator = !prev || dateStr !== prevDateStr
                 const mine = m.sender_id === user?.id
+                const rowStyle = { display:'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap:8, margin:'6px 0' }
+                const bubbleStyle = mine
+                  ? { background:'#1877f2', color:'#fff', borderRadius:16, borderTopRightRadius:4, padding:'8px 12px', maxWidth: '70%', alignSelf:'flex-end' }
+                  : { background:'rgba(255,255,255,0.08)', color:'#fff', borderRadius:16, borderTopLeftRadius:4, padding:'8px 12px', maxWidth: '70%', alignSelf:'flex-start' }
                 return (
                   <div key={m.id}>
                     {showSeparator && (
-                      <div className="separator" role="separator" aria-label={dateStr}>{dateStr}</div>
+                      <div className="separator" role="separator" aria-label={dateStr} style={{textAlign:'center', margin:'10px 0'}}>{dateStr}</div>
                     )}
-                    <div className={`bubble ${mine ? 'me' : 'them'}`}>
+                    <div style={rowStyle}>
                       {!mine && (
-                        <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" style={{marginRight:8}} />
+                        <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" />
                       )}
-                      <div>
-                        <div className="row between" style={{alignItems:'center', gap:8}}>
-                          <div>{renderWithLinks(m.content)}</div>
-                          {mine && (
-                            <button
-                              className="icon-btn"
-                              title="Delete"
-                              aria-label="Delete message"
-                              onClick={() => chooseDelete(m.id)}
-                              style={{opacity:0.8}}
-                            >
-                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                <path d="M10 11v6" />
-                                <path d="M14 11v6" />
-                              </svg>
-                            </button>
-                          )}
+                      <div style={{display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start'}}>
+                        <div style={bubbleStyle}>
+                          <div className="row" style={{alignItems:'center', gap:8}}>
+                            <div>{renderWithLinks(m.content)}</div>
+                            {mine && (
+                              <button
+                                className="icon-btn"
+                                title="Delete"
+                                aria-label="Delete message"
+                                onClick={() => chooseDelete(m.id)}
+                                style={{opacity:0.8}}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                  <path d="M10 11v6" />
+                                  <path d="M14 11v6" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div className="timestamp">{new Date(m.created_at).toLocaleTimeString()}</div>
+                        <div className="timestamp" style={{marginTop:4, color:'var(--muted)', fontSize:12}}>{new Date(m.created_at).toLocaleTimeString()}</div>
                       </div>
                     </div>
                   </div>
