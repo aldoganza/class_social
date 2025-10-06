@@ -171,7 +171,7 @@ export default function Reels() {
                 )}
               </button>
               {/* Right-side action column */}
-              <div style={{position:'absolute', right:-56, top:80, display:'flex', flexDirection:'column', alignItems:'center', gap:14}}>
+              <div style={{position:'absolute', right:-56, top:'55%', transform:'translateY(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:14}}>
                 <button className="icon-btn" title="Like" aria-label="Like" onClick={()=>toggleLike(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10, transform: likePulse[r.id] ? 'scale(1.2)' : 'scale(1)', transition:'transform 0.18s ease'}}>
                   {r.liked_by_me ? (
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="red">
