@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -14,11 +14,53 @@ export default function Reels() {
   const [comments, setComments] = useState({}) // {id: list}
   const [newComment, setNewComment] = useState('')
   const [likePulse, setLikePulse] = useState({}) // {id: boolean}
+  const [playingId, setPlayingId] = useState(null)
+  const videoRefs = useRef({}) // {id: HTMLVideoElement}
 
   const formatCount = (n) => {
     const num = Number(n || 0)
     return Intl.NumberFormat('en', { notation: 'compact' }).format(num)
   }
+
+  // Observe which reel is most visible and play only that one
+  useEffect(() => {
+    if (!list || list.length === 0) return
+    const io = new IntersectionObserver((entries) => {
+      // Pick the entry with the highest intersectionRatio that's at least 0.6
+      let best = null
+      for (const e of entries) {
+        const idAttr = e.target.getAttribute('data-reel-id')
+        const id = idAttr ? Number(idAttr) : null
+        if (!id) continue
+        if (!best || e.intersectionRatio > best.ratio) {
+          best = { id, ratio: e.intersectionRatio }
+        }
+      }
+      if (best && best.ratio >= 0.6) setPlayingId(best.id)
+    }, { threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] })
+
+    // Attach to each video element
+    Object.values(videoRefs.current).forEach(el => { if (el) io.observe(el) })
+    return () => io.disconnect()
+  }, [list])
+
+  // Enforce single playing video and mute others by default
+  useEffect(() => {
+    const refs = videoRefs.current || {}
+    Object.entries(refs).forEach(([idStr, el]) => {
+      if (!el) return
+      const id = Number(idStr)
+      if (id === playingId) {
+        // Try to play the focused reel
+        const play = () => el.play().catch(() => {})
+        if (el.paused) play()
+      } else {
+        // Pause others and mute them
+        try { el.pause() } catch {}
+        setMutedMap(m => ({ ...m, [id]: true }))
+      }
+    })
+  }, [playingId])
 
   const load = async () => {
     try {
@@ -136,7 +178,17 @@ export default function Reels() {
           const isMuted = !!mutedMap[r.id]
           return (
             <div key={r.id} style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)', marginBottom:40}}>
-              <div style={{borderRadius:16, overflow:'hidden', background:'#000'}} onDoubleClick={()=>handleDoubleLike(r)}>
+              <div style={{position:'relative', borderRadius:16, overflow:'hidden', background:'#000'}} onDoubleClick={()=>handleDoubleLike(r)} onClick={(e)=>{
+                // Single tap center toggles play/pause
+                const vid = videoRefs.current[r.id]
+                if (!vid) return
+                const rect = e.currentTarget.getBoundingClientRect()
+                const x = e.clientX - rect.left; const y = e.clientY - rect.top
+                // Consider middle 70% area as valid toggle zone
+                if (x > rect.width*0.15 && x < rect.width*0.85 && y > rect.height*0.15 && y < rect.height*0.85) {
+                  if (vid.paused) { vid.play().catch(()=>{}); setPlayingId(r.id) } else { vid.pause() }
+                }
+              }}>
                 <video
                   src={r.video_url}
                   autoPlay
@@ -144,6 +196,8 @@ export default function Reels() {
                   loop
                   controls={false}
                   playsInline
+                  data-reel-id={r.id}
+                  ref={(el)=>{ videoRefs.current[r.id] = el }}
                   style={{width:'100%', height:600, objectFit:'cover', display:'block'}}
                 />
               </div>
