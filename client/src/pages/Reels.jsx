@@ -52,7 +52,15 @@ export default function Reels() {
       const id = Number(idStr)
       if (id === playingId) {
         // Try to play the focused reel
-        const play = () => el.play().catch(() => {})
+        // Best-effort unmute active reel
+        try { el.muted = false } catch {}
+        setMutedMap(m => ({ ...m, [id]: false }))
+        const play = () => el.play().catch(() => {
+          // Fallback: if blocked, keep it muted and try again silently
+          try { el.muted = true } catch {}
+          setMutedMap(m => ({ ...m, [id]: true }))
+          el.play().catch(() => {})
+        })
         if (el.paused) play()
       } else {
         // Pause others and mute them
@@ -67,6 +75,12 @@ export default function Reels() {
       setLoading(true)
       const rows = await api.get('/reels')
       setList(rows)
+      // Initialize mute state: all muted by default
+      const initMute = {}
+      rows.forEach(r => { initMute[r.id] = true })
+      setMutedMap(initMute)
+      // Preselect first reel to play
+      if (rows[0]?.id) setPlayingId(rows[0].id)
     } catch (e) {
       setError(e.message)
     } finally { setLoading(false) }
