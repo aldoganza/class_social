@@ -162,7 +162,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="page two-col">
+    <div className="page two-col chat-layout">
       <div className="card sidebar">
         <h3 style={{marginTop:0}}>Messages</h3>
         <div className="list" role="navigation" aria-label="Conversations list">
