@@ -202,8 +202,8 @@ export default function Chat() {
                 const mine = m.sender_id === user?.id
                 const rowStyle = { display:'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap:8, margin:'6px 0' }
                 const bubbleStyle = mine
-                  ? { background:'#1877f2', color:'#fff', borderRadius:16, borderTopRightRadius:4, padding:'8px 12px', maxWidth: '70%', alignSelf:'flex-end' }
-                  : { background:'rgba(255,255,255,0.08)', color:'#fff', borderRadius:16, borderTopLeftRadius:4, padding:'8px 12px', maxWidth: '70%', alignSelf:'flex-start' }
+                  ? { background:'#1877f2', color:'#fff', borderRadius:16, borderTopRightRadius:4, padding:'8px 12px', maxWidth: '80%', alignSelf:'flex-end' }
+                  : { background:'rgba(255,255,255,0.08)', color:'#fff', borderRadius:16, borderTopLeftRadius:4, padding:'8px 12px', maxWidth: '80%', alignSelf:'flex-start' }
                 return (
                   <div key={m.id}>
                     {showSeparator && (

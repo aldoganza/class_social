@@ -27,9 +27,16 @@ img { max-width: 100%; display: block; }
 .layout.collapsed .side-link { padding: 10px; }
 
 .page-container { flex: 1; padding: 16px; max-width: 900px; width: 100%; margin: 0 auto; }
-.page-container.wide { max-width: 1200px; }
+.page-container.wide { max-width: 1400px; }
 .page { display: flex; flex-direction: column; gap: 16px; }
 .two-col { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+
+/* Chat-specific layout: push conversations closer to the left, widen chat */
+.two-col.chat-layout { grid-template-columns: 220px 1fr; gap: 12px; align-items: start; }
+.layout.collapsed .two-col.chat-layout { grid-template-columns: 200px 1fr; }
+.two-col.chat-layout .card.sidebar { padding: 12px; }
+/* Make the list taller and scrollable on chat page */
+.two-col.chat-layout .card.sidebar .list { max-height: calc(100vh - 160px); overflow: auto; }
 
 .card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px var(--shadow); }
 .title { margin: 0 0 8px 0; }
