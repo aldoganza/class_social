@@ -27,7 +27,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <div className="layout">
+        <div className={`layout ${isChat ? 'collapsed' : ''}`}>
           <Sidebar />
           <main className="content">
             <div className={`page-container ${isChat ? 'wide' : ''}`}>

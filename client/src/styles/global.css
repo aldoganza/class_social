@@ -6,6 +6,7 @@ img { max-width: 100%; display: block; }
 
 .app-container { display: flex; flex-direction: column; min-height: 100%; }
 .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+.layout.collapsed { grid-template-columns: 72px 1fr; }
 .sidebar { position: sticky; top: 0; align-self: start; height: 100vh; display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--bg-soft); border-right: 1px solid #2a2b55; }
 .side-header .logo { color: #fff; font-weight: 800; font-size: 22px; }
 .side-nav { display: flex; flex-direction: column; gap: 6px; }
@@ -15,6 +16,15 @@ img { max-width: 100%; display: block; }
 .side-footer { margin-top: auto; }
 .content { padding: 20px; }
 .logo { color: #fff; font-weight: 800; font-size: 20px; margin-right: 16px; }
+
+/* Collapsed: icon-only sidebar for chat */
+.layout.collapsed .sidebar { padding: 12px; }
+.layout.collapsed .side-link { justify-content: center; }
+.layout.collapsed .side-link .label { display: none; }
+.layout.collapsed .side-header .logo { display: none; }
+.layout.collapsed .side-footer { display: none; }
+.layout.collapsed .icon-wrap { width: 32px; height: 32px; }
+.layout.collapsed .side-link { padding: 10px; }
 
 .page-container { flex: 1; padding: 16px; max-width: 900px; width: 100%; margin: 0 auto; }
 .page-container.wide { max-width: 1200px; }

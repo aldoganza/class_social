@@ -67,7 +67,7 @@ export default function Sidebar() {
               <span className="badge icon-badge">{notifUnread > 99 ? '99+' : notifUnread}</span>
             )}
           </span>
-          <span>{label}</span>
+          <span className="label">{label}</span>
         </div>
         {extraRight}
       </Link>
