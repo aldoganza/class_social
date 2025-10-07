@@ -26,17 +26,19 @@ img { max-width: 100%; display: block; }
 .layout.collapsed .icon-wrap { width: 32px; height: 32px; }
 .layout.collapsed .side-link { padding: 10px; }
 
-.page-container { flex: 1; padding: 16px; max-width: 900px; width: 100%; margin: 0 auto; }
+.page-container { flex: 1; padding: 16px; max-width: 900px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 40px); }
 .page-container.wide { max-width: 1400px; }
 .page { display: flex; flex-direction: column; gap: 16px; }
 .two-col { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
 
 /* Chat-specific layout: push conversations closer to the left, widen chat */
-.two-col.chat-layout { grid-template-columns: 220px 1fr; gap: 12px; align-items: stretch; min-height: calc(100vh - 40px); }
+.two-col.chat-layout { grid-template-columns: 220px 1fr; gap: 12px; align-items: stretch; flex: 1; }
 .layout.collapsed .two-col.chat-layout { grid-template-columns: 200px 1fr; }
 .two-col.chat-layout .card.sidebar { padding: 12px; height: calc(100vh - 40px); display: flex; flex-direction: column; overflow: hidden; }
 /* Make the list consume remaining space and scroll */
 .two-col.chat-layout .card.sidebar .list { flex: 1; min-height: 0; max-height: none; overflow: auto; }
+/* Right chat card should also fill and stretch */
+.two-col.chat-layout .card.chat { height: calc(100vh - 40px); display: flex; flex-direction: column; overflow: hidden; }
 
 /* Chat left column header, search, and tabs */
 .chat-left-header { padding: 6px 4px 10px; border-bottom: 1px solid #2a2b55; position: sticky; top: 0; background: var(--card); z-index: 1; }
