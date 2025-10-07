@@ -38,6 +38,19 @@ img { max-width: 100%; display: block; }
 /* Make the list taller and scrollable on chat page */
 .two-col.chat-layout .card.sidebar .list { max-height: calc(100vh - 160px); overflow: auto; }
 
+/* Chat left column header, search, and tabs */
+.chat-left-header { padding: 6px 4px 10px; border-bottom: 1px solid #2a2b55; position: sticky; top: 0; background: var(--card); z-index: 1; }
+.chat-search { padding: 10px 0; position: sticky; top: 54px; background: var(--card); z-index: 1; }
+.chat-search .input-compact { width: 100%; }
+.chat-tabs { gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #2a2b55; position: sticky; top: 102px; background: var(--card); z-index: 1; }
+.chat-tabs .tab { background: transparent; border: 0; color: var(--text); font-weight: 700; padding: 6px 0; cursor: pointer; opacity: 0.8; }
+.chat-tabs .tab.active { opacity: 1; }
+.two-col.chat-layout .list { padding-top: 10px; }
+
+/* Chat header on the right */
+.chat .chat-header { position: sticky; top: 0; background: var(--card); border-bottom: 1px solid #2a2b55; padding-bottom: 8px; z-index: 1; }
+.chat .messages { padding-top: 8px; }
+
 .card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px var(--shadow); }
 .title { margin: 0 0 8px 0; }
 .subtitle { margin: 0 0 16px 0; color: var(--muted); }

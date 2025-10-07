@@ -164,7 +164,28 @@ export default function Chat() {
   return (
     <div className="page two-col chat-layout">
       <div className="card sidebar">
-        <h3 style={{marginTop:0}}>Messages</h3>
+        <div className="chat-left-header row between" style={{alignItems:'center'}}>
+          <div className="row gap" style={{alignItems:'center'}}>
+            <img src={user?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Me" />
+            <div className="bold">{user?.name || 'Messages'}</div>
+            <span aria-hidden>▾</span>
+          </div>
+          <button className="icon-btn" title="New message" aria-label="New message">✚</button>
+        </div>
+        <div className="chat-search">
+          <input
+            type="text"
+            className="input-compact"
+            placeholder="Search"
+            value={query}
+            onChange={(e)=>searchUsers(e.target.value)}
+            aria-label="Search conversations"
+          />
+        </div>
+        <div className="chat-tabs row" role="tablist">
+          <button className="tab active" role="tab" aria-selected="true">Messages</button>
+          <button className="tab" role="tab" aria-selected="false">Requests</button>
+        </div>
         <div className="list" role="navigation" aria-label="Conversations list">
           {conversations.map(c => (
             <a key={c.id} className={`list-item ${String(c.id)===String(id)?'active':''}`} href={`/chat/${c.id}`}>
@@ -185,11 +206,18 @@ export default function Chat() {
         {!id && <div className="muted">Select a classmate to start chatting.</div>}
         {id && (
           <>
-            <div className="chat-header row gap" style={{alignItems:'center'}}>
-              <img src={otherUser?.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Chat user" />
-              <div>
-                <div className="bold">{otherUser?.name || 'Conversation'}</div>
-                <div className="muted small">{otherUser?.email || ''}</div>
+            <div className="chat-header row between" style={{alignItems:'center'}}>
+              <div className="row gap" style={{alignItems:'center'}}>
+                <img src={otherUser?.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Chat user" />
+                <div>
+                  <div className="bold">{otherUser?.name || 'Conversation'}</div>
+                  <div className="muted small">{otherUser?.email || ''}</div>
+                </div>
+              </div>
+              <div className="actions row gap">
+                <button className="icon-btn" title="Call" aria-label="Call">📞</button>
+                <button className="icon-btn" title="Video" aria-label="Video">🎥</button>
+                <button className="icon-btn" title="Info" aria-label="Info">ℹ️</button>
               </div>
             </div>
 
