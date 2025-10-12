@@ -141,11 +141,10 @@ export default function PostCard({ post }) {
         </div>
       )}
       {post.video_url && (
-        <div className="image-wrapper" style={{position:'relative', cursor:'pointer'}} onClick={toggleVideoPlay}>
+        <div className="image-wrapper" style={{cursor:'pointer'}} onClick={toggleVideoPlay}>
           <video 
             ref={videoRef}
             src={post.video_url} 
-            style={{width:'100%', height:'auto', display:'block'}} 
             loop
           />
         </div>
