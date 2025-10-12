@@ -29,7 +29,7 @@ async function ensureDatabaseAndSchema() {
 
   // Apply schema and alter files
   const sqlDir = path.join(__dirname, '..', '..', 'sql');
-  const files = ['schema.sql', 'alter_add_likes_comments.sql', 'alter_add_read_at.sql'];
+  const files = ['schema.sql', 'alter_add_likes_comments.sql', 'alter_add_read_at.sql', 'alter_add_video_url.sql'];
   for (const file of files) {
     const full = path.join(sqlDir, file);
     if (fs.existsSync(full)) {
