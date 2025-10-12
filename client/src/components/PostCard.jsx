@@ -129,6 +129,11 @@ export default function PostCard({ post }) {
           <img src={post.image_url} alt="post image" />
         </div>
       )}
+      {post.video_url && (
+        <div className="image-wrapper">
+          <video src={post.video_url} controls style={{width:'100%', maxHeight:'600px', objectFit:'contain', background:'#000'}} />
+        </div>
+      )}
 
       {/* Actions like Instagram */}
       <div className="row between actions" style={{marginTop:10}}>

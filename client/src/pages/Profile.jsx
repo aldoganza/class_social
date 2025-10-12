@@ -21,6 +21,7 @@ export default function Profile() {
   const [tab, setTab] = useState('posts') // 'posts' | 'reels' | 'followers' | 'following'
   const [newContent, setNewContent] = useState('')
   const [newImage, setNewImage] = useState(null)
+  const [newVideo, setNewVideo] = useState(null)
 
   useEffect(() => {
     // If opened via shared link with ?story=, redirect to Home to open the story viewer
@@ -98,9 +99,11 @@ export default function Profile() {
       const form = new FormData()
       form.append('content', newContent)
       if (newImage) form.append('image', newImage)
+      if (newVideo) form.append('video', newVideo)
       await api.post('/posts', form)
       setNewContent('')
       setNewImage(null)
+      setNewVideo(null)
       const ps = await api.get(`/posts/user/${id}`)
       setPosts(ps)
       setStats((s) => ({ ...s, posts: (s.posts || 0) + 1 }))
@@ -167,12 +170,21 @@ export default function Profile() {
           {me && String(me.id) === String(id) && (
             <div className="card create-post">
               <h3>Create Post</h3>
-              <form onSubmit={createPost} className="form row">
+              <form onSubmit={createPost} className="form">
                 <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} placeholder="Share something..." />
-                <div className="row between">
-                  <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} />
-                  <button className="btn btn-accent">Post</button>
+                <div className="row gap" style={{alignItems:'center'}}>
+                  <label className="btn btn-light" style={{cursor:'pointer'}}>
+                    📷 Image
+                    <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files[0])} style={{display:'none'}} />
+                  </label>
+                  <label className="btn btn-light" style={{cursor:'pointer'}}>
+                    🎥 Video
+                    <input type="file" accept="video/*" onChange={(e) => setNewVideo(e.target.files[0])} style={{display:'none'}} />
+                  </label>
+                  {newImage && <span className="muted small">Image: {newImage.name}</span>}
+                  {newVideo && <span className="muted small">Video: {newVideo.name}</span>}
                 </div>
+                <button className="btn btn-accent" style={{marginTop:8}}>Post</button>
               </form>
             </div>
           )}
