@@ -79,8 +79,8 @@ input:focus, textarea:focus { border-color: var(--info); }
 
 .auth-wrapper { display: grid; place-items: center; min-height: calc(100vh - 56px); }
 
-.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-.avatar-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
+.avatar-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
 
 .feed { display: flex; flex-direction: column; gap: 12px; }
 .post-card .content { margin: 8px 0; }
