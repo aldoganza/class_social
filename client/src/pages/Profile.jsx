@@ -182,26 +182,33 @@ export default function Profile() {
       )}
 
       {tab === 'reels' && (
-        <div className="card">
-          {reels.length === 0 && <div className="muted">No reels yet.</div>}
-          <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, 260px)', gap:12}}>
+        <>
+          {reels.length === 0 && <div className="card"><div className="muted">No reels yet.</div></div>}
+          <div className="grid-posts">
             {reels.map(r => (
-              <div key={r.id} style={{border:'1px solid var(--border)', borderRadius:10, overflow:'hidden'}}>
-                <video src={r.video_url} controls style={{width:'100%', height:360, objectFit:'cover', background:'#000'}} />
-                <div className="row between" style={{padding:8, alignItems:'center'}}>
-                  <div className="row gap" style={{alignItems:'center'}}>
-                    <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
-                    <div className="small bold">{r.name}</div>
-                  </div>
-                  {me && String(me.id) === String(id) && (
+              <div key={r.id} className="grid-post">
+                {me && String(me.id) === String(id) && (
+                  <div className="row between" style={{marginBottom:6}}>
+                    <span className="muted small">{new Date(r.created_at).toLocaleDateString()}</span>
                     <button className="btn btn-light" onClick={() => deleteReel(r.id)}>Delete</button>
+                  </div>
+                )}
+                <div className="card" style={{padding:0, overflow:'hidden'}}>
+                  <video src={r.video_url} controls style={{width:'100%', height:'100%', minHeight:280, objectFit:'cover', background:'#000', display:'block'}} />
+                  {r.caption && (
+                    <div style={{padding:12}}>
+                      <div className="row gap" style={{alignItems:'center', marginBottom:6}}>
+                        <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
+                        <div className="small bold">{r.name}</div>
+                      </div>
+                      <div className="small">{r.caption}</div>
+                    </div>
                   )}
                 </div>
-                {r.caption && <div className="small" style={{padding:'0 8px 10px 8px'}}>{r.caption}</div>}
               </div>
             ))}
           </div>
-        </div>
+        </>
       )}
 
       {tab === 'followers' && (
