@@ -30,6 +30,18 @@ export default function Profile() {
       return
     }
 
+    // If opened via shared reel link, switch to reels tab
+    const sharedReel = search.get('reel')
+    if (sharedReel) {
+      setTab('reels')
+    }
+
+    // If opened via shared post link, switch to posts tab
+    const sharedPost = search.get('post')
+    if (sharedPost) {
+      setTab('posts')
+    }
+
     async function load() {
       try {
         const u = await api.get(`/users/${id}`)

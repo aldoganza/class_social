@@ -16,6 +16,10 @@ export default function Reels() {
   const [likePulse, setLikePulse] = useState({}) // {id: boolean}
   const [playingId, setPlayingId] = useState(null)
   const videoRefs = useRef({}) // {id: HTMLVideoElement}
+  const [shareOpen, setShareOpen] = useState(null) // reel id or null
+  const [following, setFollowing] = useState([])
+  const [shareSending, setShareSending] = useState({}) // userId => true when sending
+  const [shareSuccess, setShareSuccess] = useState({}) // reelId => true when link copied
 
   const formatCount = (n) => {
     const num = Number(n || 0)
@@ -157,11 +161,55 @@ export default function Reels() {
   }
 
   const shareReel = async (r) => {
+    const shareUrl = `${window.location.origin}/profile/${r.user_id}?reel=${r.id}`
+    const shareData = {
+      title: `${r.name}'s reel`,
+      text: r.caption ? String(r.caption).slice(0, 120) : 'Check out this reel',
+      url: shareUrl,
+    }
     try {
-      const url = r.video_url || window.location.href
-      await navigator.clipboard.writeText(url)
-      // optional: simple toast
-    } catch (e) { setError('Failed to copy link') }
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl)
+        setShareSuccess((s) => ({ ...s, [r.id]: true }))
+        setTimeout(() => setShareSuccess((s) => ({ ...s, [r.id]: false })), 1600)
+      } else {
+        // Fallback: create temp input
+        const el = document.createElement('textarea')
+        el.value = shareUrl
+        document.body.appendChild(el)
+        el.select()
+        try { document.execCommand('copy') } catch {}
+        document.body.removeChild(el)
+        setShareSuccess((s) => ({ ...s, [r.id]: true }))
+        setTimeout(() => setShareSuccess((s) => ({ ...s, [r.id]: false })), 1600)
+      }
+    } catch (e) {
+      // no-op on share cancel
+    }
+  }
+
+  const toggleShareMenu = async (reelId) => {
+    setShareOpen((s) => s === reelId ? null : reelId)
+    try {
+      if (following.length === 0) {
+        const list = await api.get('/follow/following')
+        setFollowing(list)
+      }
+    } catch {}
+  }
+
+  const sendShareTo = async (r, userId) => {
+    const shareUrl = `${window.location.origin}/profile/${r.user_id}?reel=${r.id}`
+    try {
+      setShareSending((m) => ({ ...m, [userId]: true }))
+      await api.post(`/messages/${userId}`, { content: shareUrl })
+      setShareSending((m) => ({ ...m, [userId]: false, [`sent_${userId}`]: true }))
+      setTimeout(() => setShareSending((m) => ({ ...m, [`sent_${userId}`]: false })), 1500)
+    } catch (e) {
+      setShareSending((m) => ({ ...m, [userId]: false }))
+    }
   }
 
   const openComments = async (r) => {
@@ -256,11 +304,12 @@ export default function Reels() {
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5c0 4.418-4.03 8-9 8-1.36 0-2.64-.25-3.8-.7L4 21l1.2-3.1A8.72 8.72 0 0 1 3 11.5C3 7.082 7.03 3.5 12 3.5s9 3.582 9 8z"/></svg>
                 </button>
                 <div className="tiny" style={{color:'#fff', textAlign:'center'}}>{Number(r.comments_count || 0)}</div>
-                <button className="icon-btn" title="Share" aria-label="Share" onClick={()=>shareReel(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
+                <button className="icon-btn" title="Share" aria-label="Share" onClick={()=>toggleShareMenu(r.id)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
                   <svg viewBox="0 0 24 24" width="22" height="22">
                     <polygon points="22,2 2,9 11,13 15,22 22,2" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
+                {shareSuccess[r.id] && <div className="tiny" style={{color:'#4ade80', textAlign:'center'}}>Copied!</div>}
                 <button className="icon-btn" title="Save" aria-label="Save" onClick={()=>toggleSave(r)} style={{background:'rgba(0,0,0,0.45)', borderRadius:999, padding:10}}>
                   {r.saved_by_me ? (
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
@@ -295,6 +344,40 @@ export default function Reels() {
                   </div>
                 )}
               </div>
+              {/* Share menu */}
+              {shareOpen === r.id && (
+                <div className="card" style={{position:'absolute', right:-280, top:0, width:260, maxHeight:600, overflow:'auto'}}>
+                  <div className="row between" style={{alignItems:'center', marginBottom:8}}>
+                    <div className="bold">Share</div>
+                    <div className="row gap">
+                      <button className="btn btn-light" onClick={()=>shareReel(r)} style={{fontSize:12, padding:'6px 10px'}}>Copy link</button>
+                      <button className="icon-btn" onClick={()=>setShareOpen(null)} aria-label="Close">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="muted small" style={{marginBottom:6}}>Send to students you follow</div>
+                  <div className="list" style={{maxHeight: 220, overflow: 'auto'}}>
+                    {following.map(u => (
+                      <div key={u.id} className="list-item" style={{justifyContent:'space-between', alignItems:'center'}}>
+                        <div className="row gap">
+                          <img src={u.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
+                          <div className="bold small">{u.name}</div>
+                        </div>
+                        <div className="row gap">
+                          {shareSending[`sent_${u.id}`] && <span className="muted small">Sent</span>}
+                          <button className="btn btn-primary" disabled={!!shareSending[u.id]} onClick={() => sendShareTo(r, u.id)} style={{fontSize:12, padding:'6px 10px'}}>
+                            {shareSending[u.id] ? 'Sending...' : 'Send'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {following.length === 0 && (
+                      <div className="muted small">You are not following anyone yet.</div>
+                    )}
+                  </div>
+                </div>
+              )}
               {/* Comments drawer */}
               {commentsOpen === r.id && (
                 <div className="card" style={{position:'absolute', right:-280, top:0, width:260, maxHeight:600, overflow:'auto'}}>
