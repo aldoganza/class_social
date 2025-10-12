@@ -239,7 +239,7 @@ export default function Chat() {
                     )}
                     <div style={rowStyle}>
                       {!mine && (
-                        <img src={otherUser?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Sender avatar" />
+                        <img src={otherUser?.profile_pic || 'https://via.placeholder.com/48'} className="avatar-md" alt="Sender avatar" />
                       )}
                       <div style={{display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start'}}>
                         <div style={bubbleStyle}>

@@ -80,6 +80,7 @@ input:focus, textarea:focus { border-color: var(--info); }
 .auth-wrapper { display: grid; place-items: center; min-height: calc(100vh - 56px); }
 
 .avatar { width: 32px; height: 32px; min-width: 32px; min-height: 32px; border-radius: 50%; object-fit: cover; object-position: center; display: block; flex-shrink: 0; aspect-ratio: 1 / 1; }
+.avatar-md { width: 48px; height: 48px; min-width: 48px; min-height: 48px; border-radius: 50%; object-fit: cover; object-position: center; display: block; flex-shrink: 0; aspect-ratio: 1 / 1; }
 .avatar-lg { width: 80px; height: 80px; min-width: 80px; min-height: 80px; border-radius: 50%; object-fit: cover; object-position: center; display: block; flex-shrink: 0; aspect-ratio: 1 / 1; }
 
 .feed { display: flex; flex-direction: column; gap: 12px; }
