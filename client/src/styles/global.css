@@ -89,6 +89,7 @@ input:focus, textarea:focus { border-color: var(--info); }
 /* Post image container: constrain size but allow scroll */
 .post-card .image-wrapper { position: relative; width: 100%; border: 0; overflow: hidden; }
 .post-card .image-wrapper img { width: 100%; height: auto; display: block; }
+.post-card .image-wrapper video { width: 100%; height: auto; display: block; }
 
 /* Instagram-like action icons */
 .icon-btn { background: transparent; border: 0; padding: 6px; border-radius: 8px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
