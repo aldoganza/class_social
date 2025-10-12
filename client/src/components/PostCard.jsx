@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { api } from '../lib/api'
 
 export default function PostCard({ post }) {
@@ -14,6 +14,7 @@ export default function PostCard({ post }) {
   const [shareOpen, setShareOpen] = useState(false)
   const [following, setFollowing] = useState([])
   const [shareSending, setShareSending] = useState({}) // userId => true when sending
+  const videoRef = useRef(null)
 
   const loadComments = async () => {
     try {
@@ -112,6 +113,16 @@ export default function PostCard({ post }) {
     }
   }
 
+  const toggleVideoPlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play()
+      } else {
+        videoRef.current.pause()
+      }
+    }
+  }
+
   return (
     <div className="card post-card">
       {/* Header */}
@@ -130,8 +141,13 @@ export default function PostCard({ post }) {
         </div>
       )}
       {post.video_url && (
-        <div className="image-wrapper">
-          <video src={post.video_url} controls style={{width:'100%', maxHeight:'600px', objectFit:'contain', background:'#000'}} />
+        <div className="image-wrapper" style={{position:'relative', cursor:'pointer'}} onClick={toggleVideoPlay}>
+          <video 
+            ref={videoRef}
+            src={post.video_url} 
+            style={{width:'100%', maxHeight:'600px', objectFit:'contain', background:'#000', display:'block'}} 
+            loop
+          />
         </div>
       )}
 
