@@ -145,7 +145,7 @@ export default function PostCard({ post }) {
           <video 
             ref={videoRef}
             src={post.video_url} 
-            style={{width:'100%', maxHeight:'600px', objectFit:'contain', background:'#000', display:'block'}} 
+            style={{width:'100%', height:'auto', display:'block'}} 
             loop
           />
         </div>
