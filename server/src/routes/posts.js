@@ -21,19 +21,26 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// POST /api/posts - create a post (text + optional image)
-router.post('/', authRequired, upload.single('image'), async (req, res) => {
+// POST /api/posts - create a post (text + optional image/video)
+router.post('/', authRequired, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]), async (req, res) => {
   try {
     const { content } = req.body;
     let image_url = null;
-    if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
-      image_url = `${baseUrl}/uploads/${req.file.filename}`;
+    let video_url = null;
+    
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+    
+    if (req.files && req.files.image && req.files.image[0]) {
+      image_url = `${baseUrl}/uploads/${req.files.image[0].filename}`;
+    }
+    
+    if (req.files && req.files.video && req.files.video[0]) {
+      video_url = `${baseUrl}/uploads/${req.files.video[0].filename}`;
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO posts (user_id, content, image_url) VALUES (?, ?, ?)',
-      [req.user.id, content || null, image_url]
+      'INSERT INTO posts (user_id, content, image_url, video_url) VALUES (?, ?, ?, ?)',
+      [req.user.id, content || null, image_url, video_url]
     );
 
     const [rows] = await pool.execute(
