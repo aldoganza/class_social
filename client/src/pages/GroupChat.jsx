@@ -180,18 +180,22 @@ export default function GroupChat() {
                     </span>
                   )}
                 </div>
-                {isAdmin && member.id !== group.created_by && (
+                {isAdmin && member.id !== group.created_by && member.id !== user.id && (
                   <div className="row gap">
                     <button 
-                      className="btn btn-light" 
-                      style={{fontSize:11, padding:'4px 8px'}}
+                      className={`btn ${member.role === 'admin' ? 'btn-light' : 'btn-primary'}`}
+                      style={{fontSize:11, padding:'4px 8px', minWidth:90}}
                       onClick={() => toggleAdmin(member.id, member.role)}
+                      disabled={processingMember === member.id}
                     >
-                      {member.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                      {processingMember === member.id 
+                        ? '...' 
+                        : member.role === 'admin' ? 'Remove Admin' : '⭐ Make Admin'}
                     </button>
                     <button 
                       className="btn btn-light" 
                       style={{fontSize:11, padding:'4px 8px'}}
+                      disabled={processingMember === member.id}
                       onClick={() => removeMember(member.id)}
                     >
                       Remove
