@@ -83,6 +83,7 @@ export default function Sidebar() {
         {user && link('/', 'Home', <HomeIcon />)}
         {user && link('/search', 'Search', <SearchIcon />)}
         {user && link('/chat', 'Messages', <MessageIcon />, null, { withBadge: 'messages' })}
+        {user && link('/groups', 'Groups', <GroupsIcon />)}
         {user && link('/create', 'Create', <CreateIcon />)}
         {user && link('/reels', 'Reels', <ReelsIcon />)}
         {user && link('/notifications', 'Notifications', <HeartIcon />, null, { withBadge: 'notifications' })}
@@ -180,6 +181,17 @@ function ReelsIcon() {
     <SvgBase>
       <rect x="3" y="3" width="18" height="18" rx="4" ry="4" />
       <polygon points="10,8 16,12 10,16" />
+    </SvgBase>
+  )
+}
+
+function GroupsIcon() {
+  return (
+    <SvgBase>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </SvgBase>
   )
 }
