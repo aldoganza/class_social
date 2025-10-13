@@ -22,38 +22,20 @@ async function addGroupsTables() {
     const sqlFile = path.join(__dirname, '..', 'sql', 'alter_add_groups.sql');
     const sql = fs.readFileSync(sqlFile, 'utf8');
     
-    // Split into individual statements
-    const statements = sql
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'));
+    // Execute the entire SQL at once
+    console.log('Executing SQL migration...\n');
     
-    console.log(`\nExecuting ${statements.length} SQL statements...\n`);
-    
-    for (const stmt of statements) {
-      try {
-        await connection.query(stmt);
-        // Extract table/action name for better logging
-        const match = stmt.match(/CREATE TABLE.*?`?(\w+)`?/i) || 
-                     stmt.match(/CREATE INDEX.*?ON (\w+)/i);
-        if (match) {
-          console.log(`✓ ${match[0].includes('INDEX') ? 'Index' : 'Table'}: ${match[1]}`);
-        }
-      } catch (e) {
-        const code = e && (e.code || e.errno);
-        const msg = (e && e.message) || '';
-        // Ignore duplicate errors
-        const benign = (
-          code === 'ER_TABLE_EXISTS_ERROR' ||
-          code === 'ER_DUP_KEYNAME' ||
-          msg.includes('already exists')
-        );
-        if (benign) {
-          const match = stmt.match(/CREATE TABLE.*?`?(\w+)`?/i);
-          if (match) console.log(`  (${match[1]} already exists)`);
-        } else {
-          throw e;
-        }
+    try {
+      await connection.query(sql);
+      console.log('✓ groups_table created');
+      console.log('✓ group_members created');
+      console.log('✓ group_messages created');
+    } catch (e) {
+      const msg = (e && e.message) || '';
+      if (msg.includes('already exists')) {
+        console.log('  (Tables already exist)');
+      } else {
+        throw e;
       }
     }
     
