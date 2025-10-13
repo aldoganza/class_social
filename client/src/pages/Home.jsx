@@ -31,19 +31,53 @@ export default function Home() {
 
   return (
     <div className="page home">
-      <StoriesBar />
-      <div className="card row between">
-        <div className="row gap">
-          <button className={`btn ${tab === 'following' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('following')}>Following</button>
-          <button className={`btn ${tab === 'explore' ? 'btn-primary' : 'btn-light'}`} onClick={() => setTab('explore')}>Explore</button>
-        </div>
-        <span className="muted small">View {tab === 'following' ? 'posts from people you follow' : 'recent posts from everyone'}</span>
+      {/* Stories Section */}
+      <div className="stories-section">
+        <StoriesBar />
       </div>
 
+      {/* Feed Header */}
+      <div className="feed-header card">
+        <div className="feed-tabs">
+          <button 
+            className={`feed-tab ${tab === 'following' ? 'active' : ''}`} 
+            onClick={() => setTab('following')}
+          >
+            <span className="tab-icon">👥</span>
+            <span className="tab-label">Following</span>
+          </button>
+          <button 
+            className={`feed-tab ${tab === 'explore' ? 'active' : ''}`} 
+            onClick={() => setTab('explore')}
+          >
+            <span className="tab-icon">🌍</span>
+            <span className="tab-label">Explore</span>
+          </button>
+        </div>
+        <p className="feed-description">
+          {tab === 'following' 
+            ? '📱 Posts from people you follow' 
+            : '🔥 Discover posts from everyone'}
+        </p>
+      </div>
+
+      {/* Feed Content */}
       <div className="feed">
-        {feed.map((p) => (
-          <PostCard key={p.id} post={p} />
-        ))}
+        {feed.length === 0 ? (
+          <div className="card empty-state">
+            <div className="empty-icon">📭</div>
+            <h3>No posts yet</h3>
+            <p className="muted">
+              {tab === 'following' 
+                ? 'Follow some classmates to see their posts here' 
+                : 'Be the first to share something!'}
+            </p>
+          </div>
+        ) : (
+          feed.map((p) => (
+            <PostCard key={p.id} post={p} />
+          ))
+        )}
       </div>
     </div>
   )
