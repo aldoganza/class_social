@@ -16,6 +16,7 @@ export default function GroupChat() {
   const [showAddMember, setShowAddMember] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
+  const [processingMember, setProcessingMember] = useState(null)
   const messagesRef = useRef(null)
 
   useEffect(() => {
@@ -111,11 +112,31 @@ export default function GroupChat() {
 
   const toggleAdmin = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'member' : 'admin'
+    const member = members.find(m => m.id === userId)
+    
+    // Confirmation dialog
+    const action = newRole === 'admin' ? 'promote' : 'demote'
+    const message = newRole === 'admin' 
+      ? `Make ${member?.name} an admin?\n\nThey will be able to:\n• Add/remove members\n• Promote other admins\n• Manage group settings`
+      : `Remove admin privileges from ${member?.name}?\n\nThey will become a regular member.`
+    
+    if (!confirm(message)) return
+    
+    setProcessingMember(userId)
     try {
       await api.put(`/groups/${id}/members/${userId}/role`, { role: newRole })
-      loadMembers()
+      await loadMembers()
+      
+      // Show success message
+      const successMsg = newRole === 'admin' 
+        ? `✓ ${member?.name} is now an admin!`
+        : `✓ ${member?.name} is now a regular member`
+      setError('') // Clear any previous errors
+      setTimeout(() => alert(successMsg), 100)
     } catch (e) {
       setError(e.message)
+    } finally {
+      setProcessingMember(null)
     }
   }
 
