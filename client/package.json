@@ -2,11 +2,14 @@
   "name": "classmates-social-frontend",
   "private": true,
   "version": "1.0.0",
+  "description": "A modern social platform for students to connect and collaborate",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext js,jsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,json,css}\""
   },
   "dependencies": {
     "react": "^18.3.1",
