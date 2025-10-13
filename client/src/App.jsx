@@ -9,6 +9,8 @@ import Notifications from './pages/Notifications.jsx'
 import Reels from './pages/Reels.jsx'
 import Create from './pages/Create.jsx'
 import Settings from './pages/Settings.jsx'
+import Groups from './pages/Groups.jsx'
+import GroupChat from './pages/GroupChat.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
@@ -23,7 +25,7 @@ function ProtectedRoute({ children }) {
 }
 export default function App() {
   const location = useLocation()
-  const isChat = location.pathname.startsWith('/chat')
+  const isChat = location.pathname.startsWith('/chat') || location.pathname.startsWith('/groups/')
   return (
     <AuthProvider>
       <ThemeProvider>
@@ -99,14 +101,32 @@ export default function App() {
                 }
               />
 
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
+              <Route
+                path="/groups"
+                element={
+                  <ProtectedRoute>
+                    <Groups />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/groups/:id"
+                element={
+                  <ProtectedRoute>
+                    <GroupChat />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
