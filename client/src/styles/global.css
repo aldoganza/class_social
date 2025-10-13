@@ -106,8 +106,43 @@ input:focus, textarea:focus { border-color: var(--info); }
 .list-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg-soft); }
 
 /* Modal (for stories player) */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: grid; place-items: center; z-index: 1000; }
-.modal-content { background: #0b0c20; border: 1px solid #2a2b55; border-radius: 12px; padding: 12px; max-width: 92vw; max-height: 88vh; }
+.modal { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.85); 
+  display: grid; 
+  place-items: center; 
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+.modal-content { 
+  background: var(--card); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius-lg); 
+  padding: var(--space-md); 
+  max-width: 92vw; 
+  max-height: 88vh;
+  box-shadow: 0 20px 60px var(--shadow-lg);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 /* Stories bar - Enhanced */
 .stories-bar { 

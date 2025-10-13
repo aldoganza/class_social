@@ -190,9 +190,17 @@ export default function StoriesBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStory?.id])
 
-  // Keyboard shortcuts while modal open
+  // Keyboard shortcuts while modal open + body scroll lock
   useEffect(() => {
-    if (!currentStory) return
+    if (!currentStory) {
+      // Re-enable body scroll when modal closes
+      document.body.style.overflow = ''
+      return
+    }
+    
+    // Disable body scroll when modal opens
+    document.body.style.overflow = 'hidden'
+    
     const onKey = (e) => {
       if (e.key === 'ArrowRight') { e.preventDefault(); nextStory() }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStory() }
@@ -200,7 +208,11 @@ export default function StoriesBar() {
       else if (e.key.toLowerCase() === 'm') { e.preventDefault(); setIsMuted(m => !m) }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      // Re-enable body scroll on cleanup
+      document.body.style.overflow = ''
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStory?.id])
 
