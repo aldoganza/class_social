@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad)"/>
+  
+  <!-- Graduation cap -->
+  <g transform="translate(50, 50)">
+    <!-- Cap top -->
+    <polygon points="-25,-15 0,-25 25,-15 0,-5" fill="#fff"/>
+    <!-- Cap base -->
+    <rect x="-20" y="-15" width="40" height="8" rx="2" fill="#fff" opacity="0.9"/>
+    <!-- Tassel -->
+    <line x1="25" y1="-15" x2="30" y2="-5" stroke="#ffd700" stroke-width="2"/>
+    <circle cx="30" cy="-5" r="3" fill="#ffd700"/>
+  </g>
+  
+  <!-- People icons (simplified) -->
+  <g transform="translate(30, 65)">
+    <circle cx="0" cy="0" r="5" fill="#fff" opacity="0.8"/>
+    <path d="M -6,5 Q -6,8 0,10 Q 6,8 6,5" fill="#fff" opacity="0.8"/>
+  </g>
+  
+  <g transform="translate(50, 70)">
+    <circle cx="0" cy="0" r="5" fill="#fff" opacity="0.8"/>
+    <path d="M -6,5 Q -6,8 0,10 Q 6,8 6,5" fill="#fff" opacity="0.8"/>
+  </g>
+  
+  <g transform="translate(70, 65)">
+    <circle cx="0" cy="0" r="5" fill="#fff" opacity="0.8"/>
+    <path d="M -6,5 Q -6,8 0,10 Q 6,8 6,5" fill="#fff" opacity="0.8"/>
+  </g>
+</svg>
