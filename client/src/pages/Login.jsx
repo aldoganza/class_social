@@ -21,24 +21,90 @@ export default function Login() {
 
   return (
     <div className="auth-wrapper">
-      <div className="card">
-        <h1 className="title">Welcome back!</h1>
-        <p className="subtitle">Log in to see your classmates' posts</p>
-        {error && <div className="error">{error}</div>}
-        <form onSubmit={onSubmit} className="form">
-          <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+      <div className="auth-container">
+        {/* Left Side - Branding */}
+        <div className="auth-brand">
+          <div className="brand-content">
+            <h1 className="brand-title gradient-text">🎓 Classmates</h1>
+            <p className="brand-subtitle">Connect, Share, and Collaborate with Your Classmates</p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <span className="feature-icon">💬</span>
+                <span>Real-time Messaging</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">👥</span>
+                <span>Study Groups</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">📚</span>
+                <span>Share Resources</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" />
+        {/* Right Side - Login Form */}
+        <div className="auth-form-container">
+          <div className="card auth-card">
+            <div className="auth-header">
+              <h2 className="auth-title">Welcome Back!</h2>
+              <p className="auth-subtitle">Log in to see what's happening</p>
+            </div>
 
-          <button className="btn btn-primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
-        <p className="muted">
-          No account? <Link to="/signup">Sign up</Link>
-        </p>
+            {error && (
+              <div className="alert alert-error">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={onSubmit} className="form auth-form">
+              <div className="form-group">
+                <label htmlFor="email">Email Address</label>
+                <input 
+                  id="email"
+                  type="email"
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="you@example.com"
+                  required
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input 
+                  id="password"
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+
+              <button className="btn btn-primary btn-block" disabled={loading}>
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  'Log In'
+                )}
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <p className="text-center muted">
+                Don't have an account? <Link to="/signup" className="link-primary">Sign up</Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
