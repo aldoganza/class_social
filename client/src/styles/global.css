@@ -91,7 +91,7 @@ input:focus, textarea:focus { border-color: var(--info); }
 .post-card .image-wrapper { 
   position: relative; 
   width: 100%; 
-  height: 500px;
+  height: 600px;
   border: 0; 
   overflow: hidden;
   display: flex;

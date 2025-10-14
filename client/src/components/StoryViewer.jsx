@@ -17,7 +17,7 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
 
   const currentGroup = groups[groupIndex]
   const currentStory = currentGroup?.stories[storyIndex]
-  const STORY_DURATION = 5000 // 5 seconds
+  const STORY_DURATION = 10000 // 10 seconds
 
   // Mark story as viewed
   useEffect(() => {

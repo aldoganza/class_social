@@ -193,8 +193,8 @@ export default function GroupChat() {
                         : member.role === 'admin' ? 'Remove Admin' : '⭐ Make Admin'}
                     </button>
                     <button 
-                      className="btn btn-light" 
-                      style={{fontSize:11, padding:'4px 8px'}}
+                      className="btn" 
+                      style={{fontSize:11, padding:'6px 12px', background:'#ef4444', color:'white', minWidth:70}}
                       disabled={processingMember === member.id}
                       onClick={() => removeMember(member.id)}
                     >

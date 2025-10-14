@@ -145,7 +145,10 @@ export default function PostCard({ post }) {
           <video 
             ref={videoRef}
             src={post.video_url} 
+            autoPlay
             loop
+            muted
+            playsInline
           />
         </div>
       )}
