@@ -11,6 +11,8 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
   const [isPaused, setIsPaused] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [replyText, setReplyText] = useState('')
+  const [showViewers, setShowViewers] = useState(false)
+  const [viewers, setViewers] = useState([])
   const videoRef = useRef(null)
   const audioRef = useRef(null)
   const progressInterval = useRef(null)
@@ -135,6 +137,17 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
     }
   }
 
+  const loadViewers = async () => {
+    if (!currentStory) return
+    try {
+      const data = await api.get(`/stories/${currentStory.id}/viewers`)
+      setViewers(data)
+      setShowViewers(true)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const timeAgo = (date) => {
     const seconds = Math.floor((Date.now() - new Date(date)) / 1000)
     if (seconds < 60) return 'now'
@@ -235,6 +248,20 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
           <div className="story-nav-right" onClick={nextStory} />
         </div>
 
+        {/* Owner: Show viewers/likes button */}
+        {user && user.id === currentStory.user_id && (
+          <div className="story-stats-btn" onClick={loadViewers}>
+            <div className="stat-item">
+              <span className="stat-icon">👁️</span>
+              <span className="stat-count">{currentStory.views_count || 0}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-icon">❤️</span>
+              <span className="stat-count">{currentStory.likes_count || 0}</span>
+            </div>
+          </div>
+        )}
+
         {/* Footer - Reply & Like */}
         <div className="story-footer">
           <input
@@ -258,6 +285,30 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
           </button>
         </div>
       </div>
+
+      {/* Viewers Modal */}
+      {showViewers && (
+        <div className="story-viewers-modal" onClick={() => setShowViewers(false)}>
+          <div className="viewers-content" onClick={(e) => e.stopPropagation()}>
+            <div className="viewers-header">
+              <h3>Viewers & Likes</h3>
+              <button className="close-btn" onClick={() => setShowViewers(false)}>✕</button>
+            </div>
+            <div className="viewers-list">
+              {viewers.map(viewer => (
+                <div key={viewer.id} className="viewer-item">
+                  <img src={getAvatarUrl(viewer.profile_pic)} alt={viewer.name} className="viewer-avatar" />
+                  <span className="viewer-name">{viewer.name}</span>
+                  {viewer.liked && <span className="liked-badge">❤️</span>}
+                </div>
+              ))}
+              {viewers.length === 0 && (
+                <div className="no-viewers">No views yet</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
