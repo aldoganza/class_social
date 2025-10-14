@@ -202,7 +202,7 @@ export default function PostCard({ post }) {
 
       {/* Caption at bottom with See more */}
       {post.content && (
-        <div className="caption" style={{marginTop:6}}>
+        <div className={`caption ${expandCaption ? 'expanded' : ''}`} style={{marginTop:6}}>
           <Link to={`/profile/${post.user_id}`} className="bold" style={{marginRight:6}}>{post.name}</Link>
           <span>
             {!expandCaption && post.content.length > 160 ? (
