@@ -1,32 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
+import { getAvatarUrl } from '../lib/defaultAvatar'
+import StoryViewer from './StoryViewer'
 
 export default function StoriesBar() {
   const { user } = useAuth()
-  const location = useLocation()
-  const navigate = useNavigate()
-  const [stories, setStories] = useState([])
-  const [grouped, setGrouped] = useState([]) // [{ user_id, name, profile_pic, items: [stories...] }]
+  const [grouped, setGrouped] = useState([])
+  const [selectedGroup, setSelectedGroup] = useState(null)
   const [error, setError] = useState('')
-  const [showPlayer, setShowPlayer] = useState(null) // story to show
-  const [likeBusy, setLikeBusy] = useState(false)
-  const [replyText, setReplyText] = useState('')
-  const [viewers, setViewers] = useState([])
-  const [viewersOpen, setViewersOpen] = useState(false)
-  const [isMuted, setIsMuted] = useState(true)
-  const [progress, setProgress] = useState(0) // 0..1 for current segment
-  const [sending, setSending] = useState(false)
-  const [toast, setToast] = useState('')
-  const [shareOpen, setShareOpen] = useState(false)
-  const [following, setFollowing] = useState([])
-  const [followingLoading, setFollowingLoading] = useState(false)
-  const [selected, setSelected] = useState(new Set())
-  const [shareText, setShareText] = useState('')
-  const [likeAnim, setLikeAnim] = useState(false)
-  const [likeHearts, setLikeHearts] = useState([]) // [{id, dx, delay, duration, size}]
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const spawnLikeHearts = (count = 6) => {
     const now = Date.now()
