@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getAvatarUrl } from '../lib/defaultAvatar'
+import PostCard from '../components/PostCard'
 
 export default function Profile() {
   const { id } = useParams()
@@ -25,20 +26,20 @@ export default function Profile() {
 
   useEffect(() => {
     // If opened via shared link with ?story=, redirect to Home to open the story viewer
-    const sharedStory = search.get('story')
+    const sharedStory = searchParams.get('story')
     if (sharedStory) {
       navigate('/', { replace: true, state: { openStoryId: Number(sharedStory) } })
       return
     }
 
     // If opened via shared reel link, switch to reels tab
-    const sharedReel = search.get('reel')
+    const sharedReel = searchParams.get('reel')
     if (sharedReel) {
       setTab('reels')
     }
 
     // If opened via shared post link, switch to posts tab
-    const sharedPost = search.get('post')
+    const sharedPost = searchParams.get('post')
     if (sharedPost) {
       setTab('posts')
     }
