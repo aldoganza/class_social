@@ -59,7 +59,7 @@ export default function PostCard({ post }) {
     setShareOpen((s) => !s)
     try {
       if (following.length === 0) {
-        const list = await api.get('/follow/following')
+        const list = await api.get('/follows/following')
         setFollowing(list)
       }
     } catch {}

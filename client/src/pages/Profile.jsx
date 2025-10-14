@@ -53,7 +53,7 @@ export default function Profile() {
         setReels(rs)
         // Determine follow status (if viewing someone else's profile)
         if (me && String(me.id) !== String(id)) {
-          const following = await api.get('/follow/following')
+          const following = await api.get('/follows/following')
           const followed = following.some(f => String(f.id) === String(id))
           setIsFollowing(followed)
         } else {
@@ -78,11 +78,11 @@ export default function Profile() {
     setLoadingFollow(true)
     try {
       if (isFollowing) {
-        await api.del(`/follow/${id}`)
+        await api.del(`/follows/${id}`)
         setIsFollowing(false)
         setStats((s) => ({ ...s, followers: Math.max(0, (s.followers || 0) - 1) }))
       } else {
-        await api.post(`/follow/${id}`, {})
+        await api.post(`/follows/${id}`, {})
         setIsFollowing(true)
         setStats((s) => ({ ...s, followers: (s.followers || 0) + 1 }))
       }
