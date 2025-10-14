@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import PostCard from '../components/PostCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { getAvatarUrl } from '../lib/defaultAvatar'
 
 export default function Profile() {
   const { id } = useParams()
-  const [search] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user: me } = useAuth()
   const [user, setUser] = useState(null)
@@ -139,7 +139,7 @@ export default function Profile() {
     <div className="page">
       {error && <div className="error">{error}</div>}
       <div className="card row gap" style={{alignItems:'center'}}>
-        <img src={user.profile_pic || 'https://via.placeholder.com/80'} alt="pfp" className="avatar-lg" />
+        <img src={getAvatarUrl(user.profile_pic)} alt="pfp" className="avatar-lg" />
         <div style={{flex:1}}>
           <h2 style={{margin:'0 0 6px 0'}}>{user.name}</h2>
           <div className="row gap">
@@ -222,7 +222,7 @@ export default function Profile() {
                   {r.caption && (
                     <div style={{padding:12}}>
                       <div className="row gap" style={{alignItems:'center', marginBottom:6}}>
-                        <img src={r.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
+                        <img src={getAvatarUrl(r.profile_pic)} className="avatar" />
                         <div className="small bold">{r.name}</div>
                       </div>
                       <div className="small">{r.caption}</div>
@@ -240,7 +240,7 @@ export default function Profile() {
           <div className="list">
             {followers.map(f => (
               <a key={f.id} className="list-item" href={`/profile/${f.id}`}>
-                <img src={f.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
+                <img src={getAvatarUrl(f.profile_pic)} className="avatar" />
                 <div>
                   <div className="bold">{f.name}</div>
                   <div className="muted small">{f.email}</div>
@@ -257,7 +257,7 @@ export default function Profile() {
           <div className="list">
             {following.map(f => (
               <a key={f.id} className="list-item" href={`/profile/${f.id}`}>
-                <img src={f.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
+                <img src={getAvatarUrl(f.profile_pic)} className="avatar" />
                 <div>
                   <div className="bold">{f.name}</div>
                   <div className="muted small">{f.email}</div>
