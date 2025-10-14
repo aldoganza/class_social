@@ -105,15 +105,18 @@ input:focus, textarea:focus { border-color: var(--info); }
 .sidebar .list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow: auto; }
 .list-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--bg-soft); }
 
-/* Modal (for stories player) - Simple & Professional */
+/* Modal (for stories player) - Blocks all interactions */
 .modal { 
   position: fixed; 
   inset: 0; 
   background: rgba(0,0,0,0.95);
   display: grid;
   place-items: center;
-  z-index: 1000;
+  z-index: 9999;
   animation: fadeIn 0.2s ease;
+  pointer-events: auto;
+  cursor: default;
+  isolation: isolate;
 }
 
 .modal-content { 
@@ -125,6 +128,19 @@ input:focus, textarea:focus { border-color: var(--info); }
   max-height: 88vh;
   box-shadow: 0 20px 60px var(--shadow-lg);
   animation: slideUp 0.3s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10000;
+}
+
+/* Prevent interaction with page content when modal is open */
+body.modal-open {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+body.modal-open .modal {
+  pointer-events: auto;
 }
 
 @keyframes fadeIn {

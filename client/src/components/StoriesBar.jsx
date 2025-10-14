@@ -190,16 +190,18 @@ export default function StoriesBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStory?.id])
 
-  // Keyboard shortcuts while modal open + body scroll lock
+  // Keyboard shortcuts while modal open + body scroll lock + pointer events block
   useEffect(() => {
     if (!currentStory) {
-      // Re-enable body scroll when modal closes
+      // Re-enable body scroll and interactions when modal closes
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
       return
     }
     
-    // Disable body scroll when modal opens
+    // Disable body scroll and interactions when modal opens
     document.body.style.overflow = 'hidden'
+    document.body.classList.add('modal-open')
     
     const onKey = (e) => {
       if (e.key === 'ArrowRight') { e.preventDefault(); nextStory() }
@@ -210,8 +212,9 @@ export default function StoriesBar() {
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      // Re-enable body scroll on cleanup
+      // Re-enable body scroll and interactions on cleanup
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStory?.id])
