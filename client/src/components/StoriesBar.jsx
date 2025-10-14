@@ -1,632 +1,80 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
-import { useAuth } from '../context/AuthContext.jsx'
 import { getAvatarUrl } from '../lib/defaultAvatar'
 import StoryViewer from './StoryViewer'
 
 export default function StoriesBar() {
-  const { user } = useAuth()
   const [grouped, setGrouped] = useState([])
-  const [selectedGroup, setSelectedGroup] = useState(null)
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(null)
   const [error, setError] = useState('')
 
-  const spawnLikeHearts = (count = 6) => {
-    const now = Date.now()
-    const batch = Array.from({ length: count }).map((_, i) => {
-      return {
-        id: now + i + Math.random(),
-        dx: Math.round((Math.random() * 2 - 1) * 40), // -40..40 px horizontal drift
-        delay: Math.floor(Math.random() * 200), // 0..200ms
-        duration: 900 + Math.floor(Math.random() * 400), // 900..1300ms
-        size: 18 + Math.floor(Math.random() * 12), // 18..30 px
-      }
-    })
-    setLikeHearts((prev) => [...prev, ...batch])
-    // cleanup each heart after it finishes
-    batch.forEach((h) => {
-      setTimeout(() => {
-        setLikeHearts((prev) => prev.filter((x) => x.id !== h.id))
-      }, h.delay + h.duration + 60)
-    })
-  }
-
-  // Simple time-ago helper
-  const timeAgo = (ts) => {
-    try {
-      const d = new Date(ts)
-      const diff = Math.max(0, Date.now() - d.getTime())
-      const mins = Math.floor(diff / 60000)
-      if (mins < 1) return 'now'
-      if (mins < 60) return `${mins}m`
-      const hrs = Math.floor(mins / 60)
-      if (hrs < 24) return `${hrs}h`
-      const days = Math.floor(hrs / 24)
-      return `${days}d`
-    } catch {
-      return ''
-    }
-  }
-
-  const load = async () => {
+  const loadStories = async () => {
     try {
       const data = await api.get('/stories')
-      setStories(data)
-      // group by user
+      // Group stories by user
       const byUser = {}
-      for (const s of data) {
-        if (!byUser[s.user_id]) byUser[s.user_id] = { user_id: s.user_id, name: s.name, profile_pic: s.profile_pic, items: [] }
-        byUser[s.user_id].items.push(s)
+      for (const story of data) {
+        if (!byUser[story.user_id]) {
+          byUser[story.user_id] = {
+            user_id: story.user_id,
+            name: story.name,
+            profile_pic: story.profile_pic,
+            stories: []
+          }
+        }
+        byUser[story.user_id].stories.push(story)
       }
       setGrouped(Object.values(byUser))
-    } catch (e) { setError(e.message) }
+    } catch (e) {
+      setError(e.message)
+    }
   }
 
-  // Open a specific story if requested via navigation state (deep link from shared message)
   useEffect(() => {
-    const targetId = location.state && location.state.openStoryId
-    if (!targetId || grouped.length === 0) return
+    loadStories()
+  }, [])
 
-    let found = null
-    let gi = -1
-    for (let i = 0; i < grouped.length; i++) {
-      const idx = grouped[i].items.findIndex(s => Number(s.id) === Number(targetId))
-      if (idx !== -1) { found = { group: grouped[i], groupIndex: i, index: idx }; gi = i; break }
-    }
-    if (found) {
-      setShowPlayer(found)
-      // Clear the state so it doesn't reopen if user navigates back
-      navigate('.', { replace: true, state: {} })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grouped, location.state])
-
-  const deleteStory = async (storyId) => {
-    try {
-      await api.del(`/stories/${storyId}`)
-      setShowPlayer(null)
-      await load()
-    } catch (e) {
-      setError(e.message)
-    }
+  const openStories = (index) => {
+    setSelectedGroupIndex(index)
   }
 
-  useEffect(() => { load() }, [])
-
-  // Creation moved to /create page
-
-  const openUserStories = (groupIndex) => {
-    const g = grouped[groupIndex]
-    if (!g) return
-    setMenuOpen(false)
-    setShowPlayer({ group: g, groupIndex, index: 0 })
-  }
-
-  const nextStory = () => {
-    setMenuOpen(false)
-    setShowPlayer((sp) => {
-      if (!sp) return sp
-      const next = sp.index + 1
-      if (next < sp.group.items.length) return { ...sp, index: next }
-      // move to next user group if exists
-      const gi = typeof sp.groupIndex === 'number' ? sp.groupIndex : grouped.findIndex(g => g.user_id === sp.group.user_id)
-      if (gi >= 0 && gi + 1 < grouped.length) {
-        const nextGroup = grouped[gi + 1]
-        return { group: nextGroup, groupIndex: gi + 1, index: 0 }
-      }
-      return null // close when finished with last group
-    })
-  }
-
-  const prevStory = () => {
-    setShowPlayer((sp) => {
-      if (!sp) return sp
-      const prev = sp.index - 1
-      if (prev >= 0) return { ...sp, index: prev }
-      // move to previous user group if exists
-      const gi = typeof sp.groupIndex === 'number' ? sp.groupIndex : grouped.findIndex(g => g.user_id === sp.group.user_id)
-      if (gi > 0) {
-        const prevGroup = grouped[gi - 1]
-        return { group: prevGroup, groupIndex: gi - 1, index: Math.max(0, (prevGroup.items?.length || 1) - 1) }
-      }
-      return sp
-    })
-  }
-
-  const currentStory = showPlayer ? showPlayer.group.items[showPlayer.index] : null
-
-  // Mark view when a story becomes current
-  useEffect(() => {
-    const markView = async () => {
-      try {
-        if (currentStory) {
-          const res = await api.post(`/stories/${currentStory.id}/view`, {})
-          // update views_count locally
-          const copy = { ...currentStory, views_count: res.views_count }
-          showPlayer.group.items[showPlayer.index] = copy
-          setShowPlayer({ ...showPlayer })
-        }
-      } catch {}
-    }
-    markView()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showPlayer?.index])
-
-  // Auto-advance with progress bar (longer per request)
-  useEffect(() => {
-    if (!currentStory) return
-    setMenuOpen(false)
-    setProgress(0)
-    const DURATION = currentStory.media_type === 'video' ? 15000 : 12000
-    const startedAt = Date.now()
-    const tick = () => {
-      const p = Math.min(1, (Date.now() - startedAt) / DURATION)
-      setProgress(p)
-      if (p >= 1) {
-        nextStory()
-      } else {
-        raf = requestAnimationFrame(tick)
-      }
-    }
-    let raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStory?.id])
-
-  // Keyboard shortcuts while modal open + body scroll lock + pointer events block
-  useEffect(() => {
-    if (!currentStory) {
-      // Re-enable body scroll and interactions when modal closes
-      document.body.style.overflow = ''
-      document.body.classList.remove('modal-open')
-      return
-    }
-    
-    // Disable body scroll and interactions when modal opens
-    document.body.style.overflow = 'hidden'
-    document.body.classList.add('modal-open')
-    
-    const onKey = (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); nextStory() }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStory() }
-      else if (e.key === 'Escape') { e.preventDefault(); setShowPlayer(null) }
-      else if (e.key.toLowerCase() === 'm') { e.preventDefault(); setIsMuted(m => !m) }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      // Re-enable body scroll and interactions on cleanup
-      document.body.style.overflow = ''
-      document.body.classList.remove('modal-open')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStory?.id])
-
-  const toggleLike = async () => {
-    if (!currentStory || likeBusy) return
-    setLikeBusy(true)
-    try {
-      if (currentStory.liked_by_me) {
-        const res = await api.del(`/stories/${currentStory.id}/like`)
-        currentStory.liked_by_me = false
-        currentStory.likes_count = res.likes_count
-      } else {
-        const res = await api.post(`/stories/${currentStory.id}/like`, {})
-        currentStory.liked_by_me = true
-        currentStory.likes_count = res.likes_count
-        // Trigger heart float animation when liking
-        setLikeAnim(false)
-        // restart animation in case it was recently played
-        requestAnimationFrame(() => {
-          setLikeAnim(true)
-          setTimeout(() => setLikeAnim(false), 900)
-        })
-        // Spawn multiple floating hearts for a nicer effect
-        spawnLikeHearts(8)
-      }
-      setShowPlayer({ ...showPlayer })
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setLikeBusy(false)
-    }
-  }
-
-  const sendReply = async () => {
-    try {
-      if (!currentStory) return
-      if (sending) return
-      setSending(true)
-      const text = replyText.trim()
-      const ownerId = showPlayer.group.user_id
-      if (text) {
-        await api.post(`/messages/${ownerId}`, { content: text })
-        setToast('Reply sent')
-      } else {
-        // Open share picker instead of sending directly
-        await openShare()
-        return
-      }
-      setReplyText('')
-      setTimeout(() => setToast(''), 1500)
-    } catch (e) {
-      setError(e.message)
-    } finally { setSending(false) }
-  }
-
-  const openShare = async () => {
-    try {
-      if (!user) return
-      setFollowingLoading(true)
-      const list = await api.get(`/users/${user.id}/following`)
-      setFollowing(list)
-      setShareOpen(true)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setFollowingLoading(false)
-    }
-  }
-
-  const toggleSelect = (id) => {
-    setSelected(prev => {
-      const copy = new Set(prev)
-      if (copy.has(id)) copy.delete(id); else copy.add(id)
-      return copy
-    })
-  }
-
-  const sendShare = async () => {
-    try {
-      if (!currentStory || selected.size === 0) return
-      setSending(true)
-      const link = `${window.location.origin}/profile/${currentStory.user_id}?story=${currentStory.id}`
-      const text = shareText.trim()
-      const content = text ? `${text}\n${link}` : `Check this story: ${link}`
-      const ids = Array.from(selected)
-      for (const id of ids) {
-        await api.post(`/messages/${id}`, { content })
-      }
-      setToast('Shared')
-      setShareOpen(false)
-      setSelected(new Set())
-      setShareText('')
-      setTimeout(() => setToast(''), 1500)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setSending(false)
-    }
-  }
-
-  const openViewers = async () => {
-    try {
-      const list = await api.get(`/stories/${currentStory.id}/viewers`)
-      setViewers(list)
-      setViewersOpen(true)
-    } catch (e) {
-      setError(e.message)
-    }
+  const closeViewer = () => {
+    setSelectedGroupIndex(null)
+    loadStories() // Refresh after viewing
   }
 
   return (
-    <div className="stories-bar card">
-      {error && <div className="error">{error}</div>}
-      {/* Story creation moved to Sidebar -> /create */}
-
-      <div className="stories-strip">
-        {grouped.map((g, i) => (
-          <button key={g.user_id} className="story" onClick={() => openUserStories(i)}>
-            <span className="story-ring">
-              <img src={g.profile_pic || 'https://via.placeholder.com/64'} alt={g.name} />
-            </span>
-            <span className="small bold" title={g.name}>{(g.name || '').slice(0,14)}</span>
-          </button>
-        ))}
-        {grouped.length === 0 && <div className="muted small">No stories yet.</div>}
+    <>
+      <div className="stories-bar">
+        {error && <div className="error-msg">{error}</div>}
+        
+        <div className="stories-scroll">
+          {grouped.map((group, index) => (
+            <button
+              key={group.user_id}
+              className="story-avatar"
+              onClick={() => openStories(index)}
+            >
+              <div className="story-ring">
+                <img src={getAvatarUrl(group.profile_pic)} alt={group.name} />
+              </div>
+              <span className="story-name">{group.name}</span>
+            </button>
+          ))}
+          
+          {grouped.length === 0 && (
+            <div className="no-stories">No stories yet</div>
+          )}
+        </div>
       </div>
 
-      {currentStory && (
-        <div className="modal" onClick={() => setShowPlayer(null)}>
-          <div className="modal-content story-frame" onClick={(e) => e.stopPropagation()} style={{position:'relative', overflow:'visible'}}>
-            {/* Top overlay bar with progress segments */}
-            {showPlayer && (
-              <div className="story-top">
-                <div className="story-progress">
-                  {showPlayer.group.items.map((_, i) => (
-                    <span key={i} className="seg">
-                      <span className="fill" style={{width: i < showPlayer.index ? '100%' : i === showPlayer.index ? `${Math.round(progress*100)}%` : '0%'}} />
-                    </span>
-                  ))}
-                </div>
-                <div className="row between" style={{alignItems:'center'}}>
-                  <div className="row gap" style={{alignItems:'center'}}>
-                    <img src={showPlayer.group.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Profile" />
-                    <div className="bold small name">{showPlayer.group.name}</div>
-                    {currentStory?.created_at && (
-                      <div className="muted tiny">{timeAgo(currentStory.created_at)}</div>
-                    )}
-                  </div>
-                  <div className="row gap" style={{position:'relative'}}>
-                    {/* Mute toggle */}
-                    <button className="icon-btn" title={isMuted? 'Unmute' : 'Mute'} aria-label="Toggle audio" onClick={() => setIsMuted(m => !m)}>
-                      {isMuted ? (
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                      ) : (
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15 9a3 3 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/></svg>
-                      )}
-                    </button>
-                    {/* More menu */}
-                    <button
-                      className="icon-btn"
-                      title="More"
-                      aria-label="More options"
-                      onClick={() => setMenuOpen(v => !v)}
-                    >
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
-                    </button>
-                    {menuOpen && (
-                      <div
-                        className="dropdown"
-                        style={{ position:'absolute', top: 28, right: 36, background:'var(--card)', border:'1px solid var(--bg-soft)', borderRadius:8, boxShadow:'0 6px 20px var(--shadow)', zIndex: 9999, minWidth: 160 }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {user && currentStory && user.id === currentStory.user_id && (
-                          <button
-                            className="dropdown-item"
-                            style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', color:'var(--text)', cursor:'pointer' }}
-                            onClick={() => { setMenuOpen(false); deleteStory(currentStory.id) }}
-                          >
-                            Delete story
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setShowPlayer(null)}>
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Share picker modal */}
-            {shareOpen && user && (
-              <div className="modal" onClick={() => setShareOpen(false)}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <div className="row between" style={{marginBottom:6, alignItems:'center'}}>
-                    <div className="bold">Share story</div>
-                    <button className="icon-btn" aria-label="Close share" onClick={() => setShareOpen(false)}>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                    </button>
-                  </div>
-                  <div className="muted tiny" style={{marginBottom:8}}>Select followers to send this story link</div>
-                  <div className="list" style={{maxHeight: '40vh', overflow:'auto', border:'1px solid var(--border)', borderRadius:6}}>
-                    {followingLoading && <div className="small" style={{padding:8}}>Loading...</div>}
-                    {!followingLoading && following.map(f => (
-                      <label key={f.id} className="list-item" style={{cursor:'pointer'}}>
-                        <div className="row gap" style={{alignItems:'center'}}>
-                          <input
-                            type="checkbox"
-                            checked={selected.has(f.id)}
-                            onChange={() => toggleSelect(f.id)}
-                            aria-label={`Select ${f.name}`}
-                          />
-                          <img src={f.profile_pic || 'https://via.placeholder.com/28'} className="avatar" />
-                          <div className="small bold">{f.name}</div>
-                        </div>
-                      </label>
-                    ))}
-                    {!followingLoading && following.length === 0 && (
-                      <div className="muted small" style={{padding:8}}>You are not following anyone yet.</div>
-                    )}
-                  </div>
-                  <div style={{marginTop:8}}>
-                    <textarea
-                      value={shareText}
-                      onChange={(e) => setShareText(e.target.value)}
-                      placeholder="Add a message (optional)"
-                      rows={3}
-                      style={{width:'100%'}}
-                    />
-                  </div>
-                  <div className="row end" style={{marginTop:8, gap:8}}>
-                    <button className="btn btn-light" onClick={() => setSelected(new Set())}>Clear</button>
-                    <button className="btn" disabled={selected.size === 0 || sending} onClick={sendShare}>
-                      {sending ? 'Sending...' : `Share (${selected.size})`}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="story-media" style={{position:'relative'}}>
-              {currentStory.media_type === 'video' ? (
-                <video
-                  src={currentStory.media_url}
-                  autoPlay
-                  muted={isMuted}
-                  loop
-                  playsInline
-                  style={{maxWidth:'90vw', maxHeight:'80vh'}}
-                />
-              ) : (
-                <div>
-                  <img src={currentStory.media_url} alt="story" style={{maxWidth:'90vw', maxHeight:'80vh'}} />
-                  {currentStory.audio_url && <audio src={currentStory.audio_url} autoPlay controls={false} style={{display:'none'}} />}
-                </div>
-              )}
-
-              {/* Optional caption/text overlay */}
-              {(currentStory.caption || currentStory.text) && (
-                <div
-                  className="story-text-overlay"
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    pointerEvents: 'none',
-                    top: currentStory.text_pos === 'top' ? 10 : currentStory.text_pos === 'center' ? '45%' : 'auto',
-                    bottom: currentStory.text_pos === 'bottom' ? 16 : 'auto',
-                  }}
-                >
-                  <span
-                    style={{
-                      color: currentStory.text_color || '#fff',
-                      background: currentStory.text_bg || 'rgba(0,0,0,0.5)',
-                      padding: '6px 10px',
-                      borderRadius: 10,
-                      maxWidth: '85%',
-                      textAlign: 'center',
-                      fontWeight: 600,
-                      letterSpacing: 0.2,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
-                    }}
-                  >
-                    {currentStory.caption || currentStory.text}
-                  </span>
-                </div>
-              )}
-              {/* Removed top like overlay per request */}
-              {user && currentStory.user_id === user.id && (
-                <div className="media-overlay right">
-                  <span className="pill small" title="Views">{Number(currentStory.views_count || 0)}</span>
-                </div>
-              )}
-
-              {/* Like floating heart animation overlay (single + burst) */}
-              {(likeAnim || likeHearts.length > 0) && (
-                <div aria-hidden style={{position:'absolute', right: 28, bottom: 90, zIndex: 9999, pointerEvents:'none'}}>
-                  {/* Single big heart */}
-                  {likeAnim && (
-                    <span style={{display:'inline-block', animation:'likeFloat 0.9s ease-out forwards', marginLeft: 0}}>
-                      <svg viewBox="0 0 24 24" width="28" height="28" fill="red">
-                        <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
-                      </svg>
-                    </span>
-                  )}
-                  {/* Burst hearts */}
-                  {likeHearts.map(h => (
-                    <span key={h.id} style={{display:'inline-block', transform:`translateX(${h.dx}px)`, marginLeft: 4}}>
-                      <span style={{display:'inline-block', animation:`likeFloat ${h.duration}ms ease-out ${h.delay}ms forwards`}}>
-                        <svg viewBox="0 0 24 24" width={h.size} height={h.size} fill="red">
-                          <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
-                        </svg>
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Media navigation arrows */}
-              <button className="media-nav left" aria-label="Previous" onClick={prevStory} disabled={showPlayer.index===0}>
-                <span className="nav-btn">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                </span>
-              </button>
-              <button className="media-nav right" aria-label="Next" onClick={nextStory} disabled={showPlayer.index===showPlayer.group.items.length-1}>
-                <span className="nav-btn">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </span>
-              </button>
-
-              {/* Large invisible tap zones (left/back, right/next) */}
-              {/* Removed large tap zones to avoid accidental navigation */}
-            </div>
-            {/* Owner-only viewers button below media */}
-            {user && currentStory.user_id === user.id && (
-              <div className="row end" style={{marginTop:6, marginBottom:16}}>
-                <button className="btn btn-light" onClick={openViewers} aria-label="See viewers">Viewers</button>
-              </div>
-            )}
-
-            {/* Bottom reply overlay */}
-            <div className="story-bottom" style={{marginTop:20}}>
-              <input
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder={`Reply to ${showPlayer?.group?.name || 'story'}...`}
-                aria-label="Reply to story"
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
-                className="reply-input"
-              />
-              <button className="icon-btn" title="Share" aria-label="Share story" onClick={openShare} disabled={sending}>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-              </button>
-              <button
-                className={`icon-btn ${currentStory.liked_by_me ? 'active' : ''}`}
-                title="Like"
-                aria-label="Like"
-                aria-pressed={currentStory.liked_by_me}
-                onClick={toggleLike}
-                disabled={likeBusy}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {currentStory.liked_by_me ? (
-                    <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" fill="currentColor" />
-                  ) : (
-                    <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {toast && (
-              <div className="toast small">{toast}</div>
-            )}
-
-            {/* Viewers list for owner - separate modal for better visibility */}
-            {viewersOpen && user && (
-              <div className="modal" onClick={() => setViewersOpen(false)}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <div className="row between" style={{marginBottom:6, alignItems:'center'}}>
-                    <div className="bold">Viewers ({viewers.length})</div>
-                    <button className="icon-btn" aria-label="Close viewers" onClick={() => setViewersOpen(false)}>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                    </button>
-                  </div>
-                  <div className="list" style={{maxHeight: '60vh', overflow:'auto'}}>
-                    {viewers.map(v => (
-                      <div key={v.id} className="list-item">
-                        <img src={v.profile_pic || 'https://via.placeholder.com/32'} className="avatar" />
-                        <div className="bold small" style={{display:'flex', alignItems:'center', gap:8}}>
-                          {v.name}
-                          {v.liked && (
-                            <svg
-                              viewBox="0 0 24 24"
-                              width="16"
-                              height="16"
-                              fill="red"
-                              aria-label="Liked"
-                              role="img"
-                              style={{marginLeft:6}}
-                            >
-                              <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {viewers.length === 0 && <div className="muted small">No viewers yet.</div>}
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="row center" style={{marginTop:8}}>
-              <div className="muted small">{showPlayer.index+1} / {showPlayer.group.items.length}</div>
-            </div>
-          </div>
-        </div>
+      {selectedGroupIndex !== null && (
+        <StoryViewer
+          groups={grouped}
+          startGroupIndex={selectedGroupIndex}
+          onClose={closeViewer}
+        />
       )}
-      {/* Inline keyframes for like float animation */}
-      <style>{`
-        @keyframes likeFloat {
-          0% { transform: translateY(0) scale(0.9); opacity: 0; }
-          15% { opacity: 1; }
-          60% { transform: translateY(-24px) scale(1.05); opacity: 1; }
-          100% { transform: translateY(-40px) scale(1); opacity: 0; }
-        }
-      `}</style>
-    </div>
+    </>
   )
 }
