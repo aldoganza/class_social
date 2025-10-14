@@ -12,6 +12,7 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
   const [isMuted, setIsMuted] = useState(true)
   const [replyText, setReplyText] = useState('')
   const videoRef = useRef(null)
+  const audioRef = useRef(null)
   const progressInterval = useRef(null)
 
   const currentGroup = groups[groupIndex]
@@ -174,7 +175,7 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
             <button className="story-btn" onClick={() => setIsPaused(!isPaused)}>
               {isPaused ? '▶' : '⏸'}
             </button>
-            {currentStory.media_type === 'video' && (
+            {(currentStory.media_type === 'video' || currentStory.audio_url) && (
               <button className="story-btn" onClick={() => setIsMuted(!isMuted)}>
                 {isMuted ? '🔇' : '🔊'}
               </button>
@@ -203,11 +204,23 @@ export default function StoryViewer({ groups, startGroupIndex, onClose }) {
               className="story-media"
             />
           ) : (
-            <img
-              src={currentStory.media_url}
-              alt="Story"
-              className="story-media"
-            />
+            <>
+              <img
+                src={currentStory.media_url}
+                alt="Story"
+                className="story-media"
+              />
+              {/* Audio for photo stories */}
+              {currentStory.audio_url && (
+                <audio
+                  ref={audioRef}
+                  src={currentStory.audio_url}
+                  autoPlay
+                  loop
+                  muted={isMuted}
+                />
+              )}
+            </>
           )}
 
           {/* Caption overlay */}

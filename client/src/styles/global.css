@@ -1764,7 +1764,7 @@ textarea:focus {
   height: 70px;
   border-radius: 50%;
   padding: 3px;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1841,7 +1841,7 @@ textarea:focus {
 
 .progress-bar-fill {
   height: 100%;
-  background: #fff;
+  background: var(--primary);
   transition: width 0.1s linear;
   border-radius: 2px;
 }
@@ -2053,7 +2053,4 @@ textarea:focus {
   margin-bottom: 12px;
 }
 
-/* End Stories
-    font-size: 20px;
-  }
-}
+/* End Stories */
