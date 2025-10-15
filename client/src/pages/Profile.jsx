@@ -151,7 +151,14 @@ export default function Profile() {
           <div className="muted small">Joined {new Date(user.created_at).toLocaleDateString()}</div>
         </div>
         {me && String(me.id) !== String(id) && (
-          <div style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => navigate(`/chat?user=${id}`)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              💬 Message
+            </button>
             <button className={`btn ${isFollowing ? 'btn-light' : 'btn-primary'}`} onClick={toggleFollow} disabled={loadingFollow}>
               {loadingFollow ? 'Please wait...' : isFollowing ? 'Unfollow' : 'Follow'}
             </button>

@@ -140,6 +140,16 @@ export default function GroupChat() {
     }
   }
 
+  const deleteGroup = async () => {
+    if (!confirm('Delete this group? This action cannot be undone!')) return
+    try {
+      await api.del(`/groups/${id}`)
+      navigate('/groups')
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   const leaveGroup = async () => {
     if (!confirm('Leave this group?')) return
     try {
