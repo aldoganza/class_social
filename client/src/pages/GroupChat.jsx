@@ -232,6 +232,15 @@ export default function GroupChat() {
               <button className="btn btn-light" onClick={() => setShowMembers(!showMembers)}>
                 Members
               </button>
+              {isAdmin && (
+                <button 
+                  className="btn" 
+                  style={{background:'#ef4444', color:'white'}}
+                  onClick={deleteGroup}
+                >
+                  Delete Group
+                </button>
+              )}
               <button className="btn btn-light" onClick={leaveGroup}>
                 Leave
               </button>
