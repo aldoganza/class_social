@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext.jsx'
 import { getAvatarUrl } from '../lib/defaultAvatar'
 import StoryViewer from './StoryViewer'
 
 export default function StoriesBar() {
+  const { user } = useAuth()
   const [grouped, setGrouped] = useState([])
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(null)
   const [error, setError] = useState('')
@@ -24,7 +26,19 @@ export default function StoriesBar() {
         }
         byUser[story.user_id].stories.push(story)
       }
-      setGrouped(Object.values(byUser))
+      
+      const groups = Object.values(byUser)
+      
+      // Put logged user's story first
+      if (user) {
+        const myIndex = groups.findIndex(g => g.user_id === user.id)
+        if (myIndex > 0) {
+          const myStory = groups.splice(myIndex, 1)[0]
+          groups.unshift(myStory)
+        }
+      }
+      
+      setGrouped(groups)
     } catch (e) {
       setError(e.message)
     }
