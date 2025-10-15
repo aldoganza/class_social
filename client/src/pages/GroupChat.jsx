@@ -191,20 +191,20 @@ export default function GroupChat() {
                   )}
                 </div>
                 {isAdmin && member.id !== group.created_by && member.id !== user.id && (
-                  <div className="row gap">
+                  <div className="row gap" style={{gap:'6px'}}>
                     <button 
                       className={`btn ${member.role === 'admin' ? 'btn-light' : 'btn-primary'}`}
-                      style={{fontSize:11, padding:'4px 8px', minWidth:90}}
+                      style={{fontSize:10, padding:'4px 8px', minWidth:70}}
                       onClick={() => toggleAdmin(member.id, member.role)}
                       disabled={processingMember === member.id}
                     >
                       {processingMember === member.id 
                         ? '...' 
-                        : member.role === 'admin' ? 'Remove Admin' : '⭐ Make Admin'}
+                        : member.role === 'admin' ? '✕ Admin' : '⭐ Admin'}
                     </button>
                     <button 
                       className="btn" 
-                      style={{fontSize:11, padding:'6px 12px', background:'#ef4444', color:'white', minWidth:70}}
+                      style={{fontSize:10, padding:'4px 8px', background:'#ef4444', color:'white', minWidth:60}}
                       disabled={processingMember === member.id}
                       onClick={() => removeMember(member.id)}
                     >
