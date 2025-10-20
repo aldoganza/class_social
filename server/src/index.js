@@ -84,7 +84,11 @@ async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
         });
         console.error('Common causes: MySQL server not running, wrong host/port, firewall, or network issue.');
         if (err && err.stack) console.error(err.stack);
-        process.exit(1);
+        // Fall back to starting the server in degraded mode instead of exiting so frontend/dev can continue
+        console.warn('Starting server in degraded mode (DB unavailable). Routes depending on the DB will return errors.');
+        app.locals.dbAvailable = false;
+        app.listen(PORT, () => console.log(`Server running in degraded mode on http://localhost:${PORT}`));
+        return;
       }
     }
   }
