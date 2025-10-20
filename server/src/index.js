@@ -50,13 +50,34 @@ app.use('/api/groups', groupsRoutes);
 
 // Start server after verifying DB
 const PORT = process.env.PORT || 4000;
+let serverInstance = null;
+function safeListen() {
+  if (serverInstance) return;
+  try {
+    serverInstance = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    serverInstance.on('error', (err) => {
+      if (err && err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Another process is listening on this port.`);
+        console.error('You can change the port by setting PORT environment variable or stop the other process.');
+        // exit gracefully
+        process.exit(1);
+      } else {
+        console.error('Server error:', err);
+        process.exit(1);
+      }
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
 const { DB_CONFIG } = require('./lib/db');
 
 async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
   // Allow skipping DB for quick frontend/dev without a database
   if (process.env.SKIP_DB === 'true') {
     console.warn('SKIP_DB=true; skipping database initialization. Server will start but routes depending on DB may error.');
-    app.listen(PORT, () => console.log(`Server running without DB on http://localhost:${PORT}`));
+    safeListen();
     return;
   }
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -65,7 +86,7 @@ async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
       await ensureDatabaseAndSchema();
       await pool.query('SELECT 1');
       console.log('MySQL connected');
-      app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+      safeListen();
       return;
     } catch (err) {
       const msg = err && (err.message || err.code || err);
@@ -87,7 +108,7 @@ async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
         // Fall back to starting the server in degraded mode instead of exiting so frontend/dev can continue
         console.warn('Starting server in degraded mode (DB unavailable). Routes depending on the DB will return errors.');
         app.locals.dbAvailable = false;
-        app.listen(PORT, () => console.log(`Server running in degraded mode on http://localhost:${PORT}`));
+        safeListen();
         return;
       }
     }
