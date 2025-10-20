@@ -69,4 +69,4 @@ async function ensureDatabaseAndSchema() {
   }
 }
 
-module.exports = { pool, ensureDatabaseAndSchema };
+module.exports = { pool, ensureDatabaseAndSchema, DB_CONFIG };
