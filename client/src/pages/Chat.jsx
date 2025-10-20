@@ -16,6 +16,7 @@ export default function Chat() {
   const [otherUser, setOtherUser] = useState(null)
   const messagesRef = useRef(null)
   const composerRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const loadConversations = async () => {
     try {
@@ -111,6 +112,37 @@ export default function Chat() {
     }
   }
 
+  const sendFile = async (file) => {
+    if (!id || !file) return
+    try {
+      const fd = new FormData()
+      // server expects field name 'file'
+      fd.append('file', file)
+      // optionally include an empty content if user didn't type
+      fd.append('content', text || '')
+      const msg = await api.postForm(`/messages/${id}`, fd)
+      setMessages((m) => [...m, msg])
+      setText('')
+      loadConversations()
+      setTimeout(() => {
+        if (messagesRef.current) messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+      }, 0)
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  const onPlusClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click()
+  }
+
+  const onFileChange = (e) => {
+    const f = e.target.files && e.target.files[0]
+    if (f) sendFile(f)
+    // reset input so same file can be picked again if needed
+    e.target.value = ''
+  }
+
   const onComposerKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -159,6 +191,24 @@ export default function Chat() {
       }
       return <span key={i}>{part}</span>
     })
+  }
+
+  const renderAttachment = (fileUrl) => {
+    if (!fileUrl) return null
+    const lower = String(fileUrl).toLowerCase()
+    // simple extension checks
+    if (/(\.png|\.jpe?g|\.gif|\.webp|\.bmp)$/.test(lower)) {
+      return <img src={fileUrl} alt="attachment" style={{maxWidth: 320, borderRadius: 8}} />
+    }
+    if (/(\.mp4|\.webm|\.ogg|\.mov)$/.test(lower)) {
+      return (
+        <video controls src={fileUrl} style={{maxWidth: 420, borderRadius: 8}} />
+      )
+    }
+    // fallback: link to file
+    return (
+      <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="link">Open attachment</a>
+    )
   }
 
   return (
@@ -244,7 +294,12 @@ export default function Chat() {
                       <div style={{display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start'}}>
                         <div style={bubbleStyle}>
                           <div className="row" style={{alignItems:'center', gap:8}}>
-                            <div>{renderWithLinks(m.content)}</div>
+                            <div style={{display:'flex', flexDirection:'column', gap:6}}>
+                              <div>{renderWithLinks(m.content)}</div>
+                              {m.file_url && (
+                                <div>{renderAttachment(m.file_url)}</div>
+                              )}
+                            </div>
                             {mine && (
                               <button
                                 className="icon-btn"
@@ -271,6 +326,8 @@ export default function Chat() {
               })}
             </div>
             <form onSubmit={sendMessage} className="composer row gap" aria-label="Send message form">
+              <button type="button" className="icon-btn" title="Attach" aria-label="Attach file" onClick={onPlusClick}>＋</button>
+              <input ref={fileInputRef} type="file" accept="image/*,video/*,application/*" style={{display:'none'}} onChange={onFileChange} />
               <button type="button" className="icon-btn" title="Emoji" aria-label="Open emoji">😊</button>
               <textarea
                 ref={composerRef}

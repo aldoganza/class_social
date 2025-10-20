@@ -1,8 +1,22 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const { pool } = require('../lib/db');
 const { authRequired } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Configure multer for direct message file uploads
+const uploadDir = path.join(__dirname, '..', '..', process.env.UPLOAD_DIR || 'uploads');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, uploadDir); },
+  filename: function (req, file, cb) {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, unique + ext);
+  }
+});
+const upload = multer({ storage });
 
 async function ensureMessagesExtras() {
   await pool.execute(`
@@ -18,16 +32,36 @@ async function ensureMessagesExtras() {
   `)
 }
 
+// Ensure messages table has file_url column to store uploaded file/video links
+async function ensureMessagesFileColumn() {
+  const [cols] = await pool.execute(`SHOW COLUMNS FROM messages LIKE 'file_url'`);
+  if (!cols || cols.length === 0) {
+    await pool.execute(`ALTER TABLE messages ADD COLUMN file_url VARCHAR(255) NULL`);
+  }
+}
+
 // Send a direct message
-router.post('/:receiverId', authRequired, async (req, res) => {
+router.post('/:receiverId', authRequired, upload.single('file'), async (req, res) => {
   try {
     const receiverId = Number(req.params.receiverId);
     const { content } = req.body;
-    if (!content || !content.trim()) return res.status(400).json({ error: 'Message content required' });
 
+    // Allow sending a message with content OR a file
+    if ((!content || !content.trim()) && !req.file) return res.status(400).json({ error: 'Message content or file required' });
+
+    // Ensure columns exist
+    await ensureMessagesFileColumn();
+
+    let file_url = null;
+    if (req.file) {
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+      file_url = `${baseUrl}/uploads/${req.file.filename}`;
+    }
+
+    const contentVal = content ? content.trim() : '';
     const [result] = await pool.execute(
-      'INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)',
-      [req.user.id, receiverId, content]
+      'INSERT INTO messages (sender_id, receiver_id, content, file_url) VALUES (?, ?, ?, ?)',
+      [req.user.id, receiverId, contentVal, file_url]
     );
 
     const [rows] = await pool.execute('SELECT * FROM messages WHERE id = ?', [result.insertId]);
