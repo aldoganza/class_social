@@ -53,6 +53,12 @@ const PORT = process.env.PORT || 4000;
 const { DB_CONFIG } = require('./lib/db');
 
 async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
+  // Allow skipping DB for quick frontend/dev without a database
+  if (process.env.SKIP_DB === 'true') {
+    console.warn('SKIP_DB=true; skipping database initialization. Server will start but routes depending on DB may error.');
+    app.listen(PORT, () => console.log(`Server running without DB on http://localhost:${PORT}`));
+    return;
+  }
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`DB connect attempt ${attempt}/${retries}...`);
