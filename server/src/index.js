@@ -50,21 +50,41 @@ app.use('/api/groups', groupsRoutes);
 
 // Start server after verifying DB
 const PORT = process.env.PORT || 4000;
-(async () => {
-  try {
-    await ensureDatabaseAndSchema();
-    await pool.query('SELECT 1');
-    console.log('MySQL connected');
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-  } catch (err) {
-    console.error('Failed to connect to MySQL:', err && (err.message || err.code || err));
-    console.error('DB config used (no password):', {
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 3306,
-      user: process.env.DB_USER || 'root',
-      database: process.env.DB_NAME || 'classmates_social',
-    });
-    if (err && err.stack) console.error(err.stack);
-    process.exit(1);
+const { DB_CONFIG } = require('./lib/db');
+
+async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`DB connect attempt ${attempt}/${retries}...`);
+      await ensureDatabaseAndSchema();
+      await pool.query('SELECT 1');
+      console.log('MySQL connected');
+      app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+      return;
+    } catch (err) {
+      const msg = err && (err.message || err.code || err);
+      console.error(`Database connection failed (attempt ${attempt}):`, msg);
+      if (attempt < retries) {
+        const delay = baseDelayMs * Math.pow(2, attempt - 1);
+        console.log(`Retrying in ${Math.round(delay / 1000)}s...`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        console.error('Exceeded database connection retries. Last error: ', msg);
+        console.error('DB config used (no password):', {
+          host: DB_CONFIG.host,
+          port: DB_CONFIG.port,
+          user: DB_CONFIG.user,
+          database: DB_CONFIG.database,
+        });
+        console.error('Common causes: MySQL server not running, wrong host/port, firewall, or network issue.');
+        if (err && err.stack) console.error(err.stack);
+        process.exit(1);
+      }
+    }
   }
-})();
+}
+
+startServerWithRetries().catch(err => {
+  console.error('Unexpected startup error:', err);
+  process.exit(1);
+});
