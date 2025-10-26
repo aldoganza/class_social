@@ -19,6 +19,38 @@ Beginner-friendly backend API for a simple social media app for high school stud
    - Update `.env` with your MySQL credentials.
    - Run the SQL in `sql/schema.sql`.
 
+### Quick local DB using Docker
+If you don't have MySQL locally, you can quickly run one using Docker Compose. A `docker-compose.yml` has been added to this folder.
+
+Start MySQL:
+
+```powershell
+# From the server folder
+docker compose up -d
+# Wait a few seconds for MySQL to initialize
+```
+
+This starts a MySQL 8 container with:
+- root password: `secret`
+- database: `classmates_social`
+
+Then set your environment variables (PowerShell example):
+
+```powershell
+$env:DB_HOST='127.0.0.1'
+$env:DB_PORT='3306'
+$env:DB_USER='root'
+$env:DB_PASSWORD='secret'
+$env:DB_NAME='classmates_social'
+node src/index.js
+```
+
+To stop the DB:
+
+```powershell
+docker compose down
+```
+
 2. Install dependencies:
 ```bash
 npm install
