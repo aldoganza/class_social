@@ -33,7 +33,6 @@ async function ensureDatabaseAndSchema() {
   for (const file of files) {
     const full = path.join(sqlDir, file);
     if (fs.existsSync(full)) {
-      console.log(`Applying SQL file: ${file}`);
       const sql = fs.readFileSync(full, 'utf8');
       if (sql && sql.trim()) {
         // Use a dedicated connection to run SQL with database selected
@@ -49,11 +48,8 @@ async function ensureDatabaseAndSchema() {
             .split(';')
             .map(s => s.trim())
             .filter(s => s.length > 0);
-          console.log(`  Executing ${statements.length} statements from ${file}`);
-          for (let i = 0; i < statements.length; i++) {
-            const stmt = statements[i];
+          for (const stmt of statements) {
             try {
-              console.log(`    [${i + 1}/${statements.length}] ${stmt.substring(0, 60)}...`);
               await conn.query(stmt);
             } catch (e) {
               const code = e && (e.code || e.errno);
@@ -67,21 +63,13 @@ async function ensureDatabaseAndSchema() {
                 msg.includes('Duplicate key name') ||
                 msg.includes('already exists')
               );
-              if (!benign) {
-                console.error(`  Error executing statement from ${file}:`, msg);
-                throw e;
-              } else {
-                console.log(`  Skipped benign error in ${file}: ${msg}`);
-              }
+              if (!benign) throw e;
             }
           }
-          console.log(`  ✓ Completed ${file}`);
         } finally {
           await conn.end();
         }
       }
-    } else {
-      console.log(`SQL file not found: ${file}`);
     }
   }
 }
