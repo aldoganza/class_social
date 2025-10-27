@@ -39,11 +39,16 @@ async function ensureDatabaseAndSchema() {
         // Use a dedicated connection to run SQL with database selected
         const conn = await mysql.createConnection({ host, port, user, password, database, multipleStatements: true });
         try {
+          // Remove comment lines first, then split into statements
+          const cleanedSql = sql
+            .split('\n')
+            .filter(line => !line.trim().startsWith('--'))
+            .join('\n');
           // Split into individual statements to handle duplicate/exists errors gracefully
-          const statements = sql
+          const statements = cleanedSql
             .split(';')
             .map(s => s.trim())
-            .filter(s => s.length > 0 && !s.startsWith('--'));
+            .filter(s => s.length > 0);
           console.log(`  Executing ${statements.length} statements from ${file}`);
           for (let i = 0; i < statements.length; i++) {
             const stmt = statements[i];

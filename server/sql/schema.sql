@@ -1,8 +1,10 @@
 -- Drop tables in dependency order to recover from corrupted/inconsistent metadata
+SET FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS follows;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS=1;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
