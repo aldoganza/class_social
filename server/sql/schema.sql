@@ -2,6 +2,12 @@
 CREATE DATABASE IF NOT EXISTS classmates_social CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE classmates_social;
 
+-- Drop tables in dependency order to recover from corrupted/inconsistent metadata
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS follows;
+DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS users;
+
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
