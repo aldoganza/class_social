@@ -1,7 +1,3 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS classmates_social CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE classmates_social;
-
 -- Drop tables in dependency order to recover from corrupted/inconsistent metadata
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS follows;
