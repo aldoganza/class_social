@@ -32,9 +32,7 @@ async function ensureDatabaseAndSchema() {
   const files = ['schema.sql', 'alter_add_likes_comments.sql', 'alter_add_read_at.sql', 'alter_add_video_url.sql', 'alter_add_groups.sql', 'alter_add_notifications_stories_settings.sql'];
   for (const file of files) {
     const full = path.join(sqlDir, file);
-    console.log(`Checking: ${file}`);
     if (fs.existsSync(full)) {
-      console.log(`  Found: ${full}`);
       const sql = fs.readFileSync(full, 'utf8');
       if (sql && sql.trim()) {
         // Use a dedicated connection to run SQL with database selected
@@ -50,11 +48,9 @@ async function ensureDatabaseAndSchema() {
             .split(';')
             .map(s => s.trim())
             .filter(s => s.length > 0);
-          console.log(`  Executing ${statements.length} statements...`);
           for (const stmt of statements) {
             try {
               await conn.query(stmt);
-              console.log(`    ✓ ${stmt.substring(0, 40)}...`);
             } catch (e) {
               const code = e && (e.code || e.errno);
               const msg = (e && e.message) || '';
