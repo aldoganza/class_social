@@ -232,14 +232,14 @@ export default function Reels() {
   }
 
   return (
-    <div className="page" style={{display:'flex', justifyContent:'center'}}>
-      <div className="col" style={{gap:40, alignItems:'center', width:'100%'}}>
+    <div className="page" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh'}}>
+      <div className="col" style={{gap:40, alignItems:'center', width:'100%', maxWidth:500, margin:'0 auto', padding:'20px 0'}}>
         {loading && <div className="muted">Loading...</div>}
         {!loading && list.length === 0 && <div className="muted">No reels yet.</div>}
         {!loading && list.map(r => {
           const isMuted = !!mutedMap[r.id]
           return (
-            <div key={r.id} style={{position:'relative', width:380, maxWidth:'calc(100vw - 120px)', marginBottom:40}}>
+            <div key={r.id} style={{position:'relative', width:'100%', maxWidth:380, marginBottom:40}}>
               <div style={{position:'relative', borderRadius:16, overflow:'hidden', background:'#000'}} onDoubleClick={()=>handleDoubleLike(r)} onClick={(e)=>{
                 // Single tap center toggles play/pause
                 const vid = videoRefs.current[r.id]
