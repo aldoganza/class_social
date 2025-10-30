@@ -7,9 +7,17 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
+  
+  // Check for success message from password reset
+  useState(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message)
+    }
+  }, [])
 
   const onSubmit = async (e) => {
     e.preventDefault()
