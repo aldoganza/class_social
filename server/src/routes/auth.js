@@ -163,25 +163,19 @@ router.post('/forgot-password', [
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    // Store token in database (you'll need to create this table)
+    // Store token in database
     await pool.execute(
       'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token_hash = ?, expires_at = ?',
       [user.id, resetTokenHash, expiresAt, resetTokenHash, expiresAt]
     );
 
-    // In production, send email here
-    // For now, just log the reset link
+    // Send password reset email
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
-    console.log('\n=== PASSWORD RESET LINK ===');
-    console.log(`User: ${user.name} (${email})`);
-    console.log(`Reset URL: ${resetUrl}`);
-    console.log('===========================\n');
+    await sendPasswordResetEmail(email, resetUrl, user.name);
 
     res.json({ 
       success: true, 
-      message: 'If that email exists, a reset link has been sent',
-      // Remove this in production - only for development
-      dev_reset_url: process.env.NODE_ENV === 'development' ? resetUrl : undefined
+      message: 'If that email exists, a reset link has been sent'
     });
   } catch (err) {
     console.error(err);
