@@ -60,6 +60,13 @@ export default function Login() {
               <p className="auth-subtitle">Log in to see what's happening</p>
             </div>
 
+            {successMessage && (
+              <div className="alert alert-success">
+                <span>✅</span>
+                <span>{successMessage}</span>
+              </div>
+            )}
+
             {error && (
               <div className="alert alert-error">
                 <span>⚠️</span>
