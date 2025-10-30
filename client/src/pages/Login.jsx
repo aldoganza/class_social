@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -13,7 +13,7 @@ export default function Login() {
   const from = location.state?.from?.pathname || '/'
   
   // Check for success message from password reset
-  useState(() => {
+  useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message)
     }

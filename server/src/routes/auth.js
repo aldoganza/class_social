@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { pool } = require('../lib/db');
 const { authRequired } = require('../middleware/auth');
+const { sendPasswordResetEmail } = require('../lib/email');
 const multer = require('multer');
 const path = require('path');
 
