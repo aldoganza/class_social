@@ -41,6 +41,21 @@ export default function Signup() {
       <div className="auth-container">
         {/* Left Side - Branding */}
         <div className="auth-brand">
+          {/* Animated Background Particles */}
+          <div className="particles">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="particle"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${15 + Math.random() * 10}s`
+                }}
+              />
+            ))}
+          </div>
           <div className="brand-content">
             <h1 className="brand-title gradient-text">🎓 Classmates</h1>
             <p className="brand-subtitle">Your Campus Social Network</p>
