@@ -3,18 +3,72 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./db');
 
+// Helper to create a connection with retry logic
+async function createConnectionWithRetry(config, maxRetries = 5, baseDelayMs = 1000) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const connection = await mysql.createConnection({
+        ...config,
+        connectTimeout: 10000, // 10 second timeout
+      });
+      await connection.ping();
+      return connection;
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt - 1);
+        console.warn(`Connection attempt ${attempt} failed, retrying in ${delay}ms...`, error.message);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw new Error(`Failed to connect to database after ${maxRetries} attempts: ${lastError.message}`);
+}
+
 async function checkAndInitializeTables() {
   const { host, port, user, password, database } = DB_CONFIG;
   const sqlDir = path.join(__dirname, '..', '..', 'sql');
   
-  // Connect to the database
-  const connection = await mysql.createConnection({ 
-    host, port, user, password, database,
-    multipleStatements: true 
+  console.log('Attempting to connect to database...', { 
+    host, 
+    port, 
+    user, 
+    database,
+    usingPassword: !!password
   });
-
+  
+  let connection;
   try {
+    // First, connect without specifying the database
+    connection = await createConnectionWithRetry({
+      host, 
+      port, 
+      user, 
+      password,
+      multipleStatements: true
+    });
+
     console.log('Checking database tables...');
+    
+    // Check if database exists
+    const [dbs] = await connection.query(
+      `SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?`,
+      [database]
+    );
+    
+    if (dbs.length === 0) {
+      console.log(`Database '${database}' does not exist, creating...`);
+      await connection.query(
+        `CREATE DATABASE \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+      );
+      console.log(`✅ Created database '${database}'`);
+    }
+    
+    // Now connect to the specific database
+    await connection.changeUser({ database });
     
     // Check if users table exists
     const [tables] = await connection.query(
@@ -49,10 +103,16 @@ async function checkAndInitializeTables() {
     await applyMigrations(connection, sqlDir);
     
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('Error in checkAndInitializeTables:', error);
     throw error;
   } finally {
-    await connection.end();
+    if (connection && connection.end) {
+      try {
+        await connection.end();
+      } catch (e) {
+        console.error('Error closing connection:', e);
+      }
+    }
   }
 }
 

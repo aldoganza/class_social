@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const fs = require('fs');
 const mysql = require('mysql2/promise');
 
-const { pool } = require('./lib/db');
+const { pool, DB_CONFIG } = require('./lib/db');
 const { checkAndInitializeTables } = require('./lib/init-db');
 const authRoutes = require('./routes/auth');
 const postsRoutes = require('./routes/posts');
@@ -73,8 +73,6 @@ function safeListen() {
     process.exit(1);
   }
 }
-const { DB_CONFIG } = require('./lib/db');
-
 async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
   // Allow skipping DB for quick frontend/dev without a database
   if (process.env.SKIP_DB === 'true') {
@@ -82,28 +80,67 @@ async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
     safeListen();
     return;
   }
+
+  console.log('Starting database connection...');
+  console.log('Database configuration:', {
+    host: DB_CONFIG.host,
+    port: DB_CONFIG.port,
+    user: DB_CONFIG.user,
+    database: DB_CONFIG.database,
+    usingPassword: !!DB_CONFIG.password
+  });
   
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`DB connect attempt ${attempt}/${retries}...`);
+      console.log(`\n=== Database Connection Attempt ${attempt}/${retries} ===`);
       
-      // Check if database exists, if not create it
-      const { host, port, user, password, database } = DB_CONFIG;
-      const admin = await mysql.createConnection({ host, port, user, password, multipleStatements: true });
       try {
-        await admin.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-      } finally {
-        await admin.end();
+        // Try to connect to the database
+        const connection = await mysql.createConnection({
+          host: DB_CONFIG.host,
+          port: DB_CONFIG.port,
+          user: DB_CONFIG.user,
+          password: DB_CONFIG.password,
+          database: DB_CONFIG.database,
+          connectTimeout: 10000,
+          multipleStatements: true
+        });
+        
+        // Test the connection
+        await connection.ping();
+        console.log('✅ Successfully connected to MySQL server');
+        
+        // Check if database exists
+        const [rows] = await connection.query(
+          `SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?`,
+          [DB_CONFIG.database]
+        );
+        
+        if (rows.length === 0) {
+          console.log(`Database '${DB_CONFIG.database}' does not exist, creating...`);
+          await connection.query(
+            `CREATE DATABASE \`${DB_CONFIG.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+          );
+          console.log(`✅ Created database '${DB_CONFIG.database}'`);
+        }
+        
+        // Close the connection as we'll use the pool from now on
+        await connection.end();
+        
+        // Initialize tables and apply migrations
+        console.log('Initializing database tables...');
+        await checkAndInitializeTables();
+        
+        // Test the connection with the pool
+        await pool.query('SELECT 1');
+        console.log('✅ Database connection and initialization successful');
+        safeListen();
+        return;
+        
+      } catch (err) {
+        console.error('Database connection error:', err);
+        if (attempt === retries) throw err;
       }
-      
-      // Initialize tables and apply migrations if needed
-      await checkAndInitializeTables();
-      
-      // Test the connection
-      await pool.query('SELECT 1');
-      console.log('MySQL connected and initialized');
-      safeListen();
-      return;
     } catch (err) {
       const msg = err && (err.message || err.code || err);
       console.error(`Database connection failed (attempt ${attempt}):`, msg);
