@@ -111,36 +111,63 @@ export default function GroupChat() {
   }
 
   const toggleAdmin = async (userId, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'member' : 'admin'
     const member = members.find(m => m.id === userId)
+    if (!member) return
+    
+    const newRole = currentRole === 'admin' ? 'member' : 'admin'
+    
+    // Check if current user has permission to modify this member
+    if (group.created_by !== user.id && member.role === 'admin') {
+      alert('Only the group creator can modify other admins.')
+      return
+    }
     
     // Confirmation dialog
-    const action = newRole === 'admin' ? 'promote' : 'demote'
     const message = newRole === 'admin' 
-      ? `Make ${member?.name} an admin?\n\nThey will be able to:\n• Add/remove members\n• Promote other admins\n• Manage group settings`
+      ? `Make ${member?.name} an admin?\n\nThey will be able to:\n• Add/remove members\n• Promote other admins\n• Manage group settings\n\nAre you sure?`
       : `Remove admin privileges from ${member?.name}?\n\nThey will become a regular member.`
     
     if (!confirm(message)) return
     
     setProcessingMember(userId)
     try {
-      await api.put(`/groups/${id}/members/${userId}/role`, { role: newRole })
-      await loadMembers()
+      const response = await api.put(`/groups/${id}/members/${userId}/role`, { 
+        role: newRole 
+      })
+      
+      // Update local state
+      setMembers(prev => prev.map(m => 
+        m.id === userId ? { ...m, role: newRole } : m
+      ))
+      
+      // If current user was demoted, update their role in the group
+      if (userId === user.id) {
+        setGroup(prev => ({
+          ...prev,
+          my_role: newRole
+        }))
+      }
       
       // Show success message
       const successMsg = newRole === 'admin' 
         ? `✓ ${member?.name} is now an admin!`
         : `✓ ${member?.name} is now a regular member`
-      setError('') // Clear any previous errors
+      setError('')
       setTimeout(() => alert(successMsg), 100)
+      
     } catch (e) {
-      setError(e.message)
+      setError(e.response?.data?.message || e.message || 'Failed to update role')
     } finally {
       setProcessingMember(null)
     }
   }
 
   const deleteGroup = async () => {
+    if (group.created_by !== user.id) {
+      alert('Only the group creator can delete the group.')
+      return
+    }
+    
     if (!confirm('Delete this group? This action cannot be undone!')) return
     try {
       await api.del(`/groups/${id}`)
@@ -151,6 +178,42 @@ export default function GroupChat() {
   }
 
   const leaveGroup = async () => {
+    // If user is the creator, they can't leave until they assign another admin
+    if (group.created_by === user.id) {
+      const admins = members.filter(m => m.role === 'admin' && m.id !== user.id)
+      if (admins.length === 0) {
+        alert('You are the creator and the only admin. Please assign another admin before leaving.')
+        return
+      }
+      
+      const adminList = admins.map(a => `• ${a.name}`).join('\n')
+      const confirmLeave = confirm(
+        `You are the group creator. Before leaving, you must assign another admin.\n\n` +
+        `Available admins to transfer ownership to:\n${adminList}\n\n` +
+        `Click OK to continue and assign a new admin.`
+      )
+      
+      if (!confirmLeave) return
+      
+      const adminId = admins[0].id // Default to first admin
+      const confirmTransfer = confirm(
+        `Transfer group ownership to ${admins[0].name}?\n` +
+        `They will become the new group creator with full control.`
+      )
+      
+      if (confirmTransfer) {
+        try {
+          await api.put(`/groups/${id}/transfer`, { new_owner_id: adminId })
+          await api.del(`/groups/${id}/members/${user.id}`)
+          navigate('/groups')
+        } catch (e) {
+          setError('Failed to transfer ownership: ' + e.message)
+        }
+      }
+      return
+    }
+    
+    // Regular member or admin (not creator) can leave directly
     if (!confirm('Leave this group?')) return
     try {
       await api.del(`/groups/${id}/members/${user.id}`)
@@ -162,7 +225,7 @@ export default function GroupChat() {
 
   if (!group) return <div className="page"><div className="card">Loading...</div></div>
 
-  const isAdmin = group.my_role === 'admin'
+  const isAdmin = group.my_role === 'admin' || group.my_role === 'creator'
 
   return (
     <div className="page-container wide">
@@ -190,7 +253,7 @@ export default function GroupChat() {
                     </span>
                   )}
                 </div>
-                {isAdmin && member.id !== group.created_by && member.id !== user.id && (
+                {(isAdmin || user.id === group.created_by) && member.id !== group.created_by && member.id !== user.id && (
                   <div className="row gap" style={{gap:'6px'}}>
                     <button 
                       className={`btn ${member.role === 'admin' ? 'btn-light' : 'btn-primary'}`}
