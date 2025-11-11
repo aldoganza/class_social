@@ -22,10 +22,23 @@ const upload = multer({ storage });
 
 // POST /api/groups - Create a new group
 router.post('/', authRequired, upload.single('group_pic'), async (req, res) => {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+    
     const { name, description } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Group name is required' });
+    }
+
+    // First verify the user exists
+    const [[user]] = await connection.execute(
+      'SELECT id FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
     let group_pic = null;
@@ -35,7 +48,7 @@ router.post('/', authRequired, upload.single('group_pic'), async (req, res) => {
     }
 
     // Create group
-    const [result] = await pool.execute(
+    const [result] = await connection.execute(
       'INSERT INTO groups_table (name, description, group_pic, created_by) VALUES (?, ?, ?, ?)',
       [name.trim(), description || null, group_pic, req.user.id]
     );
@@ -43,13 +56,13 @@ router.post('/', authRequired, upload.single('group_pic'), async (req, res) => {
     const groupId = result.insertId;
 
     // Add creator as admin
-    await pool.execute(
+    await connection.execute(
       'INSERT INTO group_members (group_id, user_id, role) VALUES (?, ?, ?)',
       [groupId, req.user.id, 'admin']
     );
 
     // Fetch created group with member count
-    const [[group]] = await pool.execute(
+    const [[group]] = await connection.execute(
       `SELECT g.*, u.name as creator_name, u.profile_pic as creator_pic,
         (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count
        FROM groups_table g
@@ -58,10 +71,21 @@ router.post('/', authRequired, upload.single('group_pic'), async (req, res) => {
       [groupId]
     );
 
+    await connection.commit();
     res.status(201).json(group);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error('Group creation error:', err);
+    res.status(500).json({ 
+      error: 'Failed to create group',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  } finally {
+    if (connection) {
+      await connection.release();
+    }
   }
 });
 
