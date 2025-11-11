@@ -259,7 +259,7 @@ export default function GroupChat() {
                     </span>
                   )}
                 </div>
-                {(isAdmin || user.id === group.created_by) && member.id !== group.created_by && member.id !== user.id && (
+                {((isAdmin && group.created_by === user.id) || (isAdmin && member.role !== 'admin')) && member.id !== group.created_by && member.id !== user.id && (
                   <div className="row gap" style={{gap:'6px'}}>
                     <button 
                       className={`btn ${member.role === 'admin' ? 'btn-light' : 'btn-primary'}`}
