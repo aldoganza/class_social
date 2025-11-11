@@ -6,7 +6,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const fs = require('fs');
 
-const { pool, ensureDatabaseAndSchema } = require('./lib/db');
+const { pool } = require('./lib/db');
+const { checkAndInitializeTables } = require('./lib/init-db');
 const authRoutes = require('./routes/auth');
 const postsRoutes = require('./routes/posts');
 const followsRoutes = require('./routes/follows');
@@ -80,12 +81,26 @@ async function startServerWithRetries(retries = 5, baseDelayMs = 1000) {
     safeListen();
     return;
   }
+  
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`DB connect attempt ${attempt}/${retries}...`);
-      await ensureDatabaseAndSchema();
+      
+      // Check if database exists, if not create it
+      const { host, port, user, password, database } = DB_CONFIG;
+      const admin = await mysql.createConnection({ host, port, user, password, multipleStatements: true });
+      try {
+        await admin.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+      } finally {
+        await admin.end();
+      }
+      
+      // Initialize tables and apply migrations if needed
+      await checkAndInitializeTables();
+      
+      // Test the connection
       await pool.query('SELECT 1');
-      console.log('MySQL connected');
+      console.log('MySQL connected and initialized');
       safeListen();
       return;
     } catch (err) {
