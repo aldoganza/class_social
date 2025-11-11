@@ -131,14 +131,16 @@ export default function GroupChat() {
     
     setProcessingMember(userId)
     try {
-      const response = await api.put(`/groups/${id}/members/${userId}/role`, { 
+      // First update the UI optimistically
+      const updatedMembers = members.map(m => 
+        m.id === userId ? { ...m, role: newRole } : m
+      )
+      setMembers(updatedMembers)
+      
+      // Then make the API call
+      await api.put(`/groups/${id}/members/${userId}/role`, { 
         role: newRole 
       })
-      
-      // Update local state
-      setMembers(prev => prev.map(m => 
-        m.id === userId ? { ...m, role: newRole } : m
-      ))
       
       // If current user was demoted, update their role in the group
       if (userId === user.id) {
@@ -153,10 +155,14 @@ export default function GroupChat() {
         ? `✓ ${member?.name} is now an admin!`
         : `✓ ${member?.name} is now a regular member`
       setError('')
-      setTimeout(() => alert(successMsg), 100)
+      
+      // Reload members to ensure consistency with server
+      await loadMembers()
       
     } catch (e) {
-      setError(e.response?.data?.message || e.message || 'Failed to update role')
+      // Revert UI on error
+      await loadMembers()
+      setError(e.response?.data?.error || e.message || 'Failed to update role')
     } finally {
       setProcessingMember(null)
     }
