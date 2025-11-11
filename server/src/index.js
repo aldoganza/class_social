@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const fs = require('fs');
+const mysql = require('mysql2/promise');
 
 const { pool } = require('./lib/db');
 const { checkAndInitializeTables } = require('./lib/init-db');
