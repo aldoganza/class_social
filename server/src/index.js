@@ -51,7 +51,7 @@ app.use('/api/reels', reelsRoutes);
 app.use('/api/groups', groupsRoutes);
 
 // Start server after verifying DB
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 let serverInstance = null;
 function safeListen() {
   if (serverInstance) return;
