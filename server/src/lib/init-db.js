@@ -149,16 +149,30 @@ async function applyMigrations(connection, sqlDir) {
       console.log(`Applying migration: ${file}`);
       const sql = fs.readFileSync(filePath, 'utf8');
       try {
+        // Handle specific migration errors gracefully
         await connection.query(sql);
         await connection.query(
           'INSERT INTO migrations (name) VALUES (?)',
           [file]
         );
-        console.log(`Applied migration: ${file}`);
+        console.log(`✅ Applied migration: ${file}`);
       } catch (error) {
-        console.error(`Error applying migration ${file}:`, error);
-        throw error;
+        // Handle duplicate column/index errors gracefully
+        if (error.code === 'ER_DUP_FIELDNAME' || 
+            error.code === 'ER_DUP_KEYNAME' || 
+            error.code === 'ER_DUP_INDEX') {
+          console.log(`⚠️  Migration ${file} already applied (${error.code}), marking as complete`);
+          await connection.query(
+            'INSERT INTO migrations (name) VALUES (?)',
+            [file]
+          );
+        } else {
+          console.error(`❌ Error applying migration ${file}:`, error);
+          throw error;
+        }
       }
+    } else {
+      console.log(`⏭️  Migration ${file} already applied, skipping`);
     }
   }
 }
