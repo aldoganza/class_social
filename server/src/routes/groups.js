@@ -43,7 +43,7 @@ router.post('/', authRequired, upload.single('group_pic'), async (req, res) => {
 
     let group_pic = null;
     if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
       group_pic = `${baseUrl}/uploads/${req.file.filename}`;
     }
 
@@ -165,7 +165,7 @@ router.put('/:id', authRequired, upload.single('group_pic'), async (req, res) =>
 
     let group_pic = undefined;
     if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
       group_pic = `${baseUrl}/uploads/${req.file.filename}`;
     }
 
@@ -434,7 +434,7 @@ router.post('/:id/messages', authRequired, upload.single('file'), async (req, re
 
     let file_url = null;
     if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
       file_url = `${baseUrl}/uploads/${req.file.filename}`;
     }
 

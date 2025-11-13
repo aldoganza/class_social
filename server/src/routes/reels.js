@@ -112,7 +112,7 @@ router.post('/', authRequired, upload.single('video'), async (req, res) => {
     if (!file) return res.status(400).json({ error: 'Video is required' });
     if (!(file.mimetype || '').startsWith('video/')) return res.status(400).json({ error: 'Only video files allowed' });
 
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
     const video_url = `${baseUrl}/uploads/${file.filename}`;
     const caption = req.body && typeof req.body.caption === 'string' ? req.body.caption.slice(0, 280) : null;
 

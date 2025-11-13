@@ -167,7 +167,7 @@ router.patch('/me', authRequired, upload.single('profile_pic'), async (req, res)
       params.push(name.trim())
     }
     if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`
       const url = `${baseUrl}/uploads/${req.file.filename}`
       fields.push('profile_pic = ?')
       params.push(url)

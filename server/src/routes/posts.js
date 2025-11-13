@@ -28,7 +28,7 @@ router.post('/', authRequired, upload.fields([{ name: 'image', maxCount: 1 }, { 
     let image_url = null;
     let video_url = null;
     
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
     
     if (req.files && req.files.image && req.files.image[0]) {
       image_url = `${baseUrl}/uploads/${req.files.image[0].filename}`;

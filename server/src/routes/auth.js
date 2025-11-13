@@ -53,7 +53,7 @@ router.post(
       const hash = await bcrypt.hash(password, 10);
       let profilePicUrl = null;
       if (req.file) {
-        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
         profilePicUrl = `${baseUrl}/uploads/${req.file.filename}`;
       }
       const [result] = await pool.execute(

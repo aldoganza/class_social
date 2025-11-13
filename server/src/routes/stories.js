@@ -99,7 +99,7 @@ router.post('/', authRequired, upload.fields([{ name: 'media', maxCount: 1 }, { 
     const audioFile = req.files && req.files.audio && req.files.audio[0]
     if (!mediaFile) return res.status(400).json({ error: 'Media is required' })
 
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`
     const media_url = `${baseUrl}/uploads/${mediaFile.filename}`
     const audio_url = audioFile ? `${baseUrl}/uploads/${audioFile.filename}` : null
     const isVideo = (mediaFile.mimetype || '').startsWith('video/')

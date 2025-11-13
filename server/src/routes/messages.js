@@ -54,7 +54,7 @@ router.post('/:receiverId', authRequired, upload.single('file'), async (req, res
 
     let file_url = null;
     if (req.file) {
-      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
       file_url = `${baseUrl}/uploads/${req.file.filename}`;
     }
 
