@@ -380,6 +380,57 @@ router.put('/:id/members/:userId/role', authRequired, async (req, res) => {
   }
 });
 
+// PUT /api/groups/:id/transfer - Transfer group ownership (creator only)
+router.put('/:id/transfer', authRequired, async (req, res) => {
+  try {
+    const groupId = Number(req.params.id);
+    const { new_owner_id } = req.body;
+
+    if (!new_owner_id) {
+      return res.status(400).json({ error: 'new_owner_id is required' });
+    }
+
+    // Check if current user is the group creator
+    const [[group]] = await pool.execute(
+      'SELECT created_by FROM groups_table WHERE id = ?',
+      [groupId]
+    );
+
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    if (group.created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Only the group creator can transfer ownership' });
+    }
+
+    // Check if new owner is a member and an admin
+    const [[newOwnerMembership]] = await pool.execute(
+      'SELECT role FROM group_members WHERE group_id = ? AND user_id = ?',
+      [groupId, new_owner_id]
+    );
+
+    if (!newOwnerMembership) {
+      return res.status(400).json({ error: 'New owner must be a group member' });
+    }
+
+    if (newOwnerMembership.role !== 'admin') {
+      return res.status(400).json({ error: 'New owner must be an admin' });
+    }
+
+    // Transfer ownership
+    await pool.execute(
+      'UPDATE groups_table SET created_by = ? WHERE id = ?',
+      [new_owner_id, groupId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/groups/:id/messages - Get group messages
 router.get('/:id/messages', authRequired, async (req, res) => {
   try {

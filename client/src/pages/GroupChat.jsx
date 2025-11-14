@@ -117,7 +117,7 @@ export default function GroupChat() {
     const newRole = currentRole === 'admin' ? 'member' : 'admin'
     
     // Check if current user has permission to modify this member
-    if (group.created_by !== user.id && member.role === 'admin') {
+    if (!isCreator && member.role === 'admin') {
       alert('Only the group creator can modify other admins.')
       return
     }
@@ -169,7 +169,7 @@ export default function GroupChat() {
   }
 
   const deleteGroup = async () => {
-    if (group.created_by !== user.id) {
+    if (!isCreator) {
       alert('Only the group creator can delete the group.')
       return
     }
@@ -185,7 +185,7 @@ export default function GroupChat() {
 
   const leaveGroup = async () => {
     // If user is the creator, they can't leave until they assign another admin
-    if (group.created_by === user.id) {
+    if (isCreator) {
       const admins = members.filter(m => m.role === 'admin' && m.id !== user.id)
       if (admins.length === 0) {
         alert('You are the creator and the only admin. Please assign another admin before leaving.')
@@ -231,7 +231,8 @@ export default function GroupChat() {
 
   if (!group) return <div className="page"><div className="card">Loading...</div></div>
 
-  const isAdmin = group.my_role === 'admin' || group.my_role === 'creator'
+  const isAdmin = group.my_role === 'admin'
+  const isCreator = group.created_by === user.id
 
   return (
     <div className="page-container wide">
@@ -240,7 +241,7 @@ export default function GroupChat() {
         <div className="card sidebar">
           <div className="chat-left-header row between" style={{alignItems:'center'}}>
             <div className="bold">Members ({members.length})</div>
-            {isAdmin && (
+            {(isAdmin || isCreator) && (
               <button className="icon-btn" onClick={() => setShowAddMember(true)} title="Add member">
                 ➕
               </button>
@@ -259,7 +260,7 @@ export default function GroupChat() {
                     </span>
                   )}
                 </div>
-                {((isAdmin && group.created_by === user.id) || (isAdmin && member.role !== 'admin')) && member.id !== group.created_by && member.id !== user.id && (
+                {((isCreator) || (isAdmin && member.role !== 'admin')) && member.id !== group.created_by && member.id !== user.id && (
                   <div className="row gap" style={{gap:'6px'}}>
                     <button 
                       className={`btn ${member.role === 'admin' ? 'btn-light' : 'btn-primary'}`}
@@ -301,7 +302,7 @@ export default function GroupChat() {
               <button className="btn btn-light" onClick={() => setShowMembers(!showMembers)}>
                 Members
               </button>
-              {isAdmin && (
+              {(isAdmin || isCreator) && (
                 <button 
                   className="btn" 
                   style={{background:'#ef4444', color:'white'}}
