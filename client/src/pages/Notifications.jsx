@@ -43,6 +43,8 @@ export default function Notifications() {
     if (n.type === 'follow') return `${who} started following you`
     if (n.type === 'like') return `${who} liked your post`
     if (n.type === 'comment') return `${who} commented on your post`
+    if (n.type === 'group_added') return n.message || `${who} added you to a group`
+    if (n.type === 'group_admin') return n.message || `${who} promoted you to admin`
     return `${who} did something`
   }
 
@@ -107,6 +109,27 @@ export default function Notifications() {
                   style={{width:48,height:48,objectFit:'cover',borderRadius:8,marginRight:8,cursor:'pointer'}}
                   onClick={() => navigate(`/post/${n.post_id}`)}
                 />
+              )}
+              
+              {/* Show group thumbnail for group-related notifications */}
+              {(n.type === 'group_added' || n.type === 'group_admin') && n.group_pic && (
+                <img 
+                  src={n.group_pic} 
+                  alt="group" 
+                  style={{width:48,height:48,objectFit:'cover',borderRadius:8,marginRight:8,cursor:'pointer'}}
+                  onClick={() => navigate(`/groups/${n.group_id}`)}
+                />
+              )}
+              
+              {/* Show View Group button for group notifications */}
+              {(n.type === 'group_added' || n.type === 'group_admin') && (
+                <button 
+                  className="btn btn-primary"
+                  style={{fontSize:12, padding:'6px 12px'}}
+                  onClick={() => navigate(`/groups/${n.group_id}`)}
+                >
+                  View Group
+                </button>
               )}
               
               {/* Show Follow Back button for follow notifications */}
