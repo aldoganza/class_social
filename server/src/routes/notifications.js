@@ -16,12 +16,14 @@ router.get('/', authRequired, async (req, res) => {
   try {
     const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50))
     const [rows] = await pool.query(
-      `SELECT n.id, n.type, n.post_id, n.comment_id, n.created_at, n.read_at,
+      `SELECT n.id, n.type, n.post_id, n.comment_id, n.group_id, n.message, n.created_at, n.read_at,
               a.id AS actor_id, a.name AS actor_name, a.profile_pic AS actor_pic,
-              p.image_url AS post_image
+              p.image_url AS post_image,
+              g.name AS group_name, g.group_pic AS group_pic
          FROM notifications n
          JOIN users a ON a.id = n.actor_id
          LEFT JOIN posts p ON p.id = n.post_id
+         LEFT JOIN groups_table g ON g.id = n.group_id
         WHERE n.user_id = ?
         ORDER BY n.created_at DESC
         LIMIT ?`,

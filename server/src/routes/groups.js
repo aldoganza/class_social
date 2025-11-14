@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const { pool } = require('../lib/db');
 const { authRequired } = require('../middleware/auth');
+const { createNotification, markGroupMessageAsRead, getGroupsWithUnreadMessages } = require('../lib/notifications');
 
 const router = express.Router();
 
@@ -104,7 +105,17 @@ router.get('/', authRequired, async (req, res) => {
        ORDER BY g.updated_at DESC`,
       [req.user.id]
     );
-    res.json(groups);
+
+    // Get groups with unread messages
+    const unreadGroupIds = await getGroupsWithUnreadMessages(req.user.id);
+    
+    // Add unread flag to each group
+    const groupsWithUnread = groups.map(group => ({
+      ...group,
+      has_unread_messages: unreadGroupIds.includes(group.id)
+    }));
+
+    res.json(groupsWithUnread);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -300,6 +311,16 @@ router.post('/:id/members', authRequired, async (req, res) => {
       throw e;
     }
 
+    // Create notification for group addition
+    const [[group]] = await pool.execute('SELECT name FROM groups_table WHERE id = ?', [groupId]);
+    await createNotification({
+      userId: user_id,
+      actorId: req.user.id,
+      type: 'group_added',
+      groupId: groupId,
+      message: `You have been added to the group "${group?.name || 'Unknown Group'}"`
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -372,6 +393,19 @@ router.put('/:id/members/:userId/role', authRequired, async (req, res) => {
       'UPDATE group_members SET role = ? WHERE group_id = ? AND user_id = ?',
       [role, groupId, userIdToUpdate]
     );
+
+    // Create notification for admin promotion/demotion
+    if (role === 'admin') {
+      // Get group name for notification message
+      const [[group]] = await pool.execute('SELECT name FROM groups_table WHERE id = ?', [groupId]);
+      await createNotification({
+        userId: userIdToUpdate,
+        actorId: req.user.id,
+        type: 'group_admin',
+        groupId: groupId,
+        message: `You have been promoted to admin in "${group?.name || 'Unknown Group'}"`
+      });
+    }
 
     res.json({ success: true });
   } catch (err) {
@@ -455,6 +489,12 @@ router.get('/:id/messages', authRequired, async (req, res) => {
        LIMIT 500`,
       [groupId]
     );
+
+    // Mark messages as read if there are any
+    if (messages.length > 0) {
+      const lastMessageId = messages[messages.length - 1].id;
+      await markGroupMessageAsRead(req.user.id, groupId, lastMessageId);
+    }
 
     res.json(messages);
   } catch (err) {

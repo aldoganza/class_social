@@ -85,9 +85,23 @@ export default function Groups() {
             <div style={{flex:1}}>
               <div className="row between">
                 <div className="bold">{group.name}</div>
-                {group.my_role === 'admin' && (
-                  <span className="badge" style={{background:'var(--accent)', color:'#000'}}>Admin</span>
-                )}
+                <div className="row gap" style={{alignItems:'center', gap:'8px'}}>
+                  {group.my_role === 'admin' && (
+                    <span className="badge" style={{background:'var(--accent)', color:'#000'}}>Admin</span>
+                  )}
+                  {group.has_unread_messages && (
+                    <div 
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#1877f2',
+                        flexShrink: 0
+                      }}
+                      title="New messages"
+                    />
+                  )}
+                </div>
               </div>
               <div className="muted small">{group.member_count} members</div>
               {group.last_message && (
