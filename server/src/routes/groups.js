@@ -164,13 +164,13 @@ router.put('/:id', authRequired, upload.single('group_pic'), async (req, res) =>
     const groupId = Number(req.params.id);
     const { name, description } = req.body;
 
-    // Check if user is admin
+    // Check if user is admin or creator
     const [[membership]] = await pool.execute(
-      'SELECT role FROM group_members WHERE group_id = ? AND user_id = ?',
+      'SELECT gm.role, g.created_by FROM group_members gm JOIN groups_table g ON g.id = gm.group_id WHERE gm.group_id = ? AND gm.user_id = ?',
       [groupId, req.user.id]
     );
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership.role !== 'admin' && membership.created_by !== req.user.id)) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -229,13 +229,13 @@ router.delete('/:id', authRequired, async (req, res) => {
   try {
     const groupId = Number(req.params.id);
 
-    // Check if user is admin
+    // Check if user is admin or creator
     const [[membership]] = await pool.execute(
-      'SELECT role FROM group_members WHERE group_id = ? AND user_id = ?',
+      'SELECT gm.role, g.created_by FROM group_members gm JOIN groups_table g ON g.id = gm.group_id WHERE gm.group_id = ? AND gm.user_id = ?',
       [groupId, req.user.id]
     );
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership.role !== 'admin' && membership.created_by !== req.user.id)) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -288,13 +288,13 @@ router.post('/:id/members', authRequired, async (req, res) => {
       return res.status(400).json({ error: 'user_id is required' });
     }
 
-    // Check if requester is admin
+    // Check if requester is admin or creator
     const [[membership]] = await pool.execute(
-      'SELECT role FROM group_members WHERE group_id = ? AND user_id = ?',
+      'SELECT gm.role, g.created_by FROM group_members gm JOIN groups_table g ON g.id = gm.group_id WHERE gm.group_id = ? AND gm.user_id = ?',
       [groupId, req.user.id]
     );
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership.role !== 'admin' && membership.created_by !== req.user.id)) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -378,13 +378,13 @@ router.put('/:id/members/:userId/role', authRequired, async (req, res) => {
       return res.status(400).json({ error: 'Invalid role' });
     }
 
-    // Check if requester is admin
+    // Check if requester is admin or creator
     const [[membership]] = await pool.execute(
-      'SELECT role FROM group_members WHERE group_id = ? AND user_id = ?',
+      'SELECT gm.role, g.created_by FROM group_members gm JOIN groups_table g ON g.id = gm.group_id WHERE gm.group_id = ? AND gm.user_id = ?',
       [groupId, req.user.id]
     );
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership.role !== 'admin' && membership.created_by !== req.user.id)) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
