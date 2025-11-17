@@ -15,6 +15,7 @@ export default function PostCard({ post }) {
   const [following, setFollowing] = useState([])
   const [shareSending, setShareSending] = useState({}) // userId => true when sending
   const [muted, setMuted] = useState(true)
+  const [isInView, setIsInView] = useState(false)
   const videoRef = useRef(null)
 
   const loadComments = async () => {
@@ -85,6 +86,44 @@ export default function PostCard({ post }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showComments])
 
+  // Intersection Observer for auto play/pause on scroll
+  useEffect(() => {
+    if (!videoRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            // Auto play with sound when video comes into view
+            if (videoRef.current) {
+              videoRef.current.muted = false
+              setMuted(false)
+              videoRef.current.play()
+            }
+          } else {
+            setIsInView(false)
+            // Auto pause and mute when video goes out of view
+            if (videoRef.current) {
+              videoRef.current.pause()
+              videoRef.current.muted = true
+              setMuted(true)
+            }
+          }
+        })
+      },
+      { threshold: 0.7 } // Trigger when 70% of video is visible
+    )
+
+    observer.observe(videoRef.current)
+
+    return () => {
+      if (videoRef.current) {
+        observer.unobserve(videoRef.current)
+      }
+    }
+  }, [post.video_url])
+
   const toggleLike = async () => {
     try {
       if (liked) {
@@ -114,14 +153,15 @@ export default function PostCard({ post }) {
     }
   }
 
-  const toggleVideoPlay = () => {
+  const handleVideoClick = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        // On user interaction, unmute and play so sound works
+        // If paused, play and unmute
         videoRef.current.muted = false
         setMuted(false)
         videoRef.current.play()
       } else {
+        // If playing, pause
         videoRef.current.pause()
       }
     }
@@ -145,15 +185,13 @@ export default function PostCard({ post }) {
         </div>
       )}
       {post.video_url && (
-        <div className="image-wrapper" style={{cursor:'pointer'}} onClick={toggleVideoPlay}>
+        <div className="image-wrapper" style={{cursor:'pointer'}} onClick={handleVideoClick}>
           <video 
             ref={videoRef}
             src={post.video_url} 
-            autoPlay
             loop
             muted={muted}
             playsInline
-            controls
           />
         </div>
       )}

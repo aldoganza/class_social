@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getAvatarUrl } from '../lib/defaultAvatar'
 import PostCard from '../components/PostCard'
+import VideoEditor from '../components/VideoEditor'
 
 export default function Profile() {
   const { id } = useParams()
@@ -23,6 +24,7 @@ export default function Profile() {
   const [newContent, setNewContent] = useState('')
   const [newImage, setNewImage] = useState(null)
   const [newVideo, setNewVideo] = useState(null)
+  const [editingPostVideo, setEditingPostVideo] = useState(false)
 
   useEffect(() => {
     // If opened via shared link with ?story=, redirect to Home to open the story viewer
@@ -134,6 +136,29 @@ export default function Profile() {
     }
   }
 
+  const handlePostVideoSave = (trimmedVideo) => {
+    setNewVideo(trimmedVideo)
+    setEditingPostVideo(false)
+  }
+
+  const handlePostVideoCancel = () => {
+    setNewVideo(null)
+    setEditingPostVideo(false)
+  }
+
+  // Show video editor if editing post video
+  if (editingPostVideo && newVideo) {
+    return (
+      <div className="page">
+        <VideoEditor
+          file={newVideo}
+          onSave={handlePostVideoSave}
+          onCancel={handlePostVideoCancel}
+        />
+      </div>
+    )
+  }
+
   if (!user) return <div className="page"><div className="card">Loading...</div></div>
 
   return (
@@ -187,7 +212,13 @@ export default function Profile() {
                   </label>
                   <label className="btn btn-light" style={{cursor:'pointer'}}>
                     🎥 Video
-                    <input type="file" accept="video/*" onChange={(e) => setNewVideo(e.target.files[0])} style={{display:'none'}} />
+                    <input type="file" accept="video/*" onChange={(e) => {
+                      const file = e.target.files[0]
+                      if (file && file.type.startsWith('video/')) {
+                        setNewVideo(file)
+                        setEditingPostVideo(true)
+                      }
+                    }} style={{display:'none'}} />
                   </label>
                   {newImage && <span className="muted small">Image: {newImage.name}</span>}
                   {newVideo && <span className="muted small">Video: {newVideo.name}</span>}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api } from '../lib/api'
+import VideoEditor from '../components/VideoEditor'
 
 export default function Create() {
   const [media, setMedia] = useState(null)
@@ -15,11 +16,21 @@ export default function Create() {
   const [reelVideo, setReelVideo] = useState(null)
   const [reelCaption, setReelCaption] = useState('')
   const [reelUploading, setReelUploading] = useState(false)
+  // Video editing states
+  const [editingStoryVideo, setEditingStoryVideo] = useState(false)
+  const [editingReelVideo, setEditingReelVideo] = useState(false)
 
   const onFile = (e) => {
     const f = e.target.files?.[0]
     if (!f) return
-    setMedia(f)
+    
+    // Check if it's a video file
+    if (f.type.startsWith('video/')) {
+      setEditingStoryVideo(true)
+      setMedia(f)
+    } else {
+      setMedia(f)
+    }
   }
 
   const postReel = async () => {
@@ -48,7 +59,12 @@ export default function Create() {
   const onReelVideo = (e) => {
     const f = e.target.files?.[0]
     if (!f) return
-    setReelVideo(f)
+    
+    // Always open video editor for reels
+    if (f.type.startsWith('video/')) {
+      setEditingReelVideo(true)
+      setReelVideo(f)
+    }
   }
 
   const postStory = async () => {
@@ -76,6 +92,46 @@ export default function Create() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleStoryVideoSave = (trimmedVideo) => {
+    setMedia(trimmedVideo)
+    setEditingStoryVideo(false)
+  }
+
+  const handleReelVideoSave = (trimmedVideo) => {
+    setReelVideo(trimmedVideo)
+    setEditingReelVideo(false)
+  }
+
+  const handleVideoEditCancel = () => {
+    setEditingStoryVideo(false)
+    setEditingReelVideo(false)
+  }
+
+  // Show video editor if editing
+  if (editingStoryVideo && media) {
+    return (
+      <div className="page">
+        <VideoEditor
+          file={media}
+          onSave={handleStoryVideoSave}
+          onCancel={handleVideoEditCancel}
+        />
+      </div>
+    )
+  }
+
+  if (editingReelVideo && reelVideo) {
+    return (
+      <div className="page">
+        <VideoEditor
+          file={reelVideo}
+          onSave={handleReelVideoSave}
+          onCancel={handleVideoEditCancel}
+        />
+      </div>
+    )
   }
 
   return (
