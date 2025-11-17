@@ -301,6 +301,45 @@ export default function GroupChat() {
       <div className="page two-col chat-layout">
         {/* Members Sidebar */}
         <div className="card sidebar">
+          {/* Site Logo */}
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <span style={{
+                fontSize: '28px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                🎓
+              </span>
+              ClassSocial
+            </div>
+            <div style={{
+              fontSize: '12px',
+              color: '#888',
+              marginTop: '4px'
+            }}>
+              Group Chat
+            </div>
+          </div>
+
           <div className="chat-left-header row between" style={{alignItems:'center'}}>
             <div className="bold">Members ({members.length})</div>
             {(isAdmin || isCreator) && (
