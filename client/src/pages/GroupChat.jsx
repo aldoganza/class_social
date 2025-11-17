@@ -17,7 +17,10 @@ export default function GroupChat() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [processingMember, setProcessingMember] = useState(null)
+  const [attachedFile, setAttachedFile] = useState(null)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
   const messagesRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     loadGroup()
@@ -59,12 +62,21 @@ export default function GroupChat() {
 
   const sendMessage = async (e) => {
     e.preventDefault()
-    if (!text.trim()) return
+    if (!text.trim() && !attachedFile) return
 
     try {
-      const msg = await api.post(`/groups/${id}/messages`, { content: text })
+      const formData = new FormData()
+      formData.append('content', text || 'File attachment')
+      if (attachedFile) {
+        formData.append('file', attachedFile)
+      }
+
+      const msg = await api.postForm(`/groups/${id}/messages`, formData)
       setMessages((m) => [...m, msg])
       setText('')
+      setAttachedFile(null)
+      setShowAttachMenu(false)
+      
       setTimeout(() => {
         if (messagesRef.current) {
           messagesRef.current.scrollTop = messagesRef.current.scrollHeight
@@ -73,6 +85,56 @@ export default function GroupChat() {
     } catch (e) {
       setError(e.message)
     }
+  }
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    // Validate file size (50MB max)
+    if (file.size > 50 * 1024 * 1024) {
+      setError('File size must be less than 50MB')
+      return
+    }
+    
+    setAttachedFile(file)
+    setShowAttachMenu(false)
+  }
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const openFileDialog = (accept = '*') => {
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = accept
+      fileInputRef.current.click()
+    }
+  }
+
+  const getFileIcon = (filename) => {
+    if (!filename) return '📄'
+    const ext = filename.split('.').pop()?.toLowerCase()
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return '🖼️'
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv'].includes(ext)) return '🎥'
+    if (['mp3', 'wav', 'flac', 'aac'].includes(ext)) return '🎵'
+    if (['pdf'].includes(ext)) return '📕'
+    if (['doc', 'docx'].includes(ext)) return '📝'
+    if (['xls', 'xlsx'].includes(ext)) return '📊'
+    if (['txt'].includes(ext)) return '📄'
+    if (['zip', 'rar', '7z'].includes(ext)) return '📦'
+    return '📄'
+  }
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
   const searchUsers = async (q) => {
@@ -335,7 +397,89 @@ export default function GroupChat() {
                         padding: '8px 12px',
                         wordBreak: 'break-word'
                       }}>
-                        {m.content}
+                        {/* File attachment rendering */}
+                        {m.file_url && (
+                          <div style={{ marginBottom: m.content !== 'File attachment' ? 8 : 0 }}>
+                            {/* Image files */}
+                            {/\.(jpg|jpeg|png|gif|webp)$/i.test(m.file_url) && (
+                              <div>
+                                <img 
+                                  src={m.file_url} 
+                                  alt="Shared image"
+                                  style={{
+                                    maxWidth: '300px',
+                                    maxHeight: '200px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'block'
+                                  }}
+                                  onClick={() => window.open(m.file_url, '_blank')}
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Video files */}
+                            {/\.(mp4|avi|mov|wmv|flv|webm)$/i.test(m.file_url) && (
+                              <div>
+                                <video 
+                                  src={m.file_url}
+                                  controls
+                                  style={{
+                                    maxWidth: '300px',
+                                    maxHeight: '200px',
+                                    borderRadius: '8px',
+                                    display: 'block'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Audio files */}
+                            {/\.(mp3|wav|flac|aac|ogg)$/i.test(m.file_url) && (
+                              <div>
+                                <audio 
+                                  src={m.file_url}
+                                  controls
+                                  style={{
+                                    width: '250px'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Other files */}
+                            {!/\.(jpg|jpeg|png|gif|webp|mp4|avi|mov|wmv|flv|webm|mp3|wav|flac|aac|ogg)$/i.test(m.file_url) && (
+                              <div style={{
+                                padding: '8px 12px',
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                              }}
+                              onClick={() => window.open(m.file_url, '_blank')}
+                              >
+                                <span style={{ fontSize: '20px' }}>
+                                  {getFileIcon(m.file_url)}
+                                </span>
+                                <div>
+                                  <div style={{ fontSize: '14px' }}>
+                                    {m.file_url.split('/').pop()}
+                                  </div>
+                                  <div style={{ fontSize: '12px', opacity: 0.7 }}>
+                                    Click to download
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Text content (only show if not default file attachment message) */}
+                        {m.content && m.content !== 'File attachment' && (
+                          <div>{m.content}</div>
+                        )}
                       </div>
                       <div className="muted" style={{fontSize:11, marginTop:4}}>
                         {new Date(m.created_at).toLocaleTimeString()}
@@ -347,21 +491,216 @@ export default function GroupChat() {
             })}
           </div>
 
-          <form onSubmit={sendMessage} className="composer row gap">
-            <textarea
-              rows={1}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  if (text.trim()) sendMessage(e)
-                }
-              }}
-              placeholder="Type a message..."
-              style={{flex:1}}
+          <form onSubmit={sendMessage} className="composer">
+            {/* File preview */}
+            {attachedFile && (
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: '8px',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '20px' }}>
+                  {getFileIcon(attachedFile.name)}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                    {attachedFile.name}
+                  </div>
+                  <div style={{ fontSize: '12px', opacity: 0.7 }}>
+                    {formatFileSize(attachedFile.size)}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeAttachedFile}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ef4444',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <div className="row gap" style={{ alignItems: 'flex-end' }}>
+              {/* Attachment button */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  onClick={() => setShowAttachMenu(!showAttachMenu)}
+                  style={{
+                    background: showAttachMenu ? '#3b82f6' : 'transparent',
+                    color: showAttachMenu ? '#fff' : '#888',
+                    padding: '8px',
+                    marginBottom: '2px'
+                  }}
+                >
+                  📎
+                </button>
+                
+                {/* Attachment menu */}
+                {showAttachMenu && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: 0,
+                    backgroundColor: '#2a2b55',
+                    border: '1px solid #444',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    marginBottom: '8px',
+                    minWidth: '160px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => openFileDialog('image/*')}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        padding: '8px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      🖼️ Image
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openFileDialog('video/*')}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        padding: '8px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      🎥 Video
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openFileDialog('audio/*')}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        padding: '8px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      🎵 Audio
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openFileDialog('.txt,.doc,.docx,.pdf,.xls,.xlsx,.zip,.rar')}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        padding: '8px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      📄 Document
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openFileDialog('*')}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        padding: '8px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      📎 Any File
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <textarea
+                rows={1}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    if (text.trim() || attachedFile) sendMessage(e)
+                  }
+                }}
+                placeholder="Type a message..."
+                style={{ flex: 1 }}
+              />
+              
+              <button 
+                type="submit" 
+                className="btn btn-primary"
+                disabled={!text.trim() && !attachedFile}
+              >
+                Send
+              </button>
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
             />
-            <button type="submit" className="btn btn-primary">Send</button>
           </form>
         </div>
       </div>
