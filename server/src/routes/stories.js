@@ -53,17 +53,34 @@ async function ensureStoriesTable() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `)
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN audio_url VARCHAR(255) NULL AFTER media_type')
+  } catch (e) {}
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN text_color VARCHAR(16) NULL')
+  } catch (e) {}
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN text_bg VARCHAR(16) NULL')
+  } catch (e) {}
+  try {
+    await pool.execute("ALTER TABLE stories ADD COLUMN text_pos ENUM('top','center','bottom') NULL DEFAULT 'bottom'")
+  } catch (e) {}
 }
 
 async function ensureStoryTextColumns() {
   // Add optional caption overlay columns if they don't exist
-  await pool.execute(`
-    ALTER TABLE stories
-      ADD COLUMN IF NOT EXISTS caption VARCHAR(280) NULL,
-      ADD COLUMN IF NOT EXISTS text_color VARCHAR(16) NULL,
-      ADD COLUMN IF NOT EXISTS text_bg VARCHAR(16) NULL,
-      ADD COLUMN IF NOT EXISTS text_pos ENUM('top','center','bottom') NULL DEFAULT 'bottom'
-  `)
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN caption VARCHAR(280) NULL')
+  } catch (e) {}
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN text_color VARCHAR(16) NULL')
+  } catch (e) {}
+  try {
+    await pool.execute('ALTER TABLE stories ADD COLUMN text_bg VARCHAR(16) NULL')
+  } catch (e) {}
+  try {
+    await pool.execute("ALTER TABLE stories ADD COLUMN text_pos ENUM('top','center','bottom') NULL DEFAULT 'bottom'")
+  } catch (e) {}
 }
 
 async function ensureStoryExtras() {

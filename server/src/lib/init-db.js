@@ -123,7 +123,8 @@ async function applyMigrations(connection, sqlDir) {
     'alter_add_video_url.sql',
     'alter_add_groups.sql',
     'alter_add_notifications_stories_settings.sql',
-    'alter_add_password_resets.sql'
+    'alter_add_password_resets.sql',
+    'alter_fix_notifications_stories.sql'
   ];
 
   // Create migrations table if it doesn't exist
