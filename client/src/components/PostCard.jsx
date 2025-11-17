@@ -14,6 +14,7 @@ export default function PostCard({ post }) {
   const [shareOpen, setShareOpen] = useState(false)
   const [following, setFollowing] = useState([])
   const [shareSending, setShareSending] = useState({}) // userId => true when sending
+  const [muted, setMuted] = useState(true)
   const videoRef = useRef(null)
 
   const loadComments = async () => {
@@ -116,6 +117,9 @@ export default function PostCard({ post }) {
   const toggleVideoPlay = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
+        // On user interaction, unmute and play so sound works
+        videoRef.current.muted = false
+        setMuted(false)
         videoRef.current.play()
       } else {
         videoRef.current.pause()
@@ -147,8 +151,9 @@ export default function PostCard({ post }) {
             src={post.video_url} 
             autoPlay
             loop
-            muted
+            muted={muted}
             playsInline
+            controls
           />
         </div>
       )}
