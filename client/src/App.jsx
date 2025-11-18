@@ -14,6 +14,7 @@ import Settings from './pages/Settings.jsx'
 import Groups from './pages/Groups.jsx'
 import GroupChat from './pages/GroupChat.jsx'
 import Sidebar from './components/Sidebar.jsx'
+import MobileNav from './components/MobileNav.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 
@@ -136,6 +137,7 @@ export default function App() {
               </Routes>
             </div>
           </main>
+          <MobileNav />
         </div>
       </ThemeProvider>
     </AuthProvider>

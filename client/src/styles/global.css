@@ -2324,3 +2324,447 @@ textarea:focus {
 }
 
 /* End Loading Screen */
+
+/* ========================================
+   RESPONSIVE DESIGN - Mobile First
+   ======================================== */
+
+/* Base styles are mobile-first */
+* { 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safari safe areas */
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Ensure content doesn't overlap with notch or home indicator */
+.layout {
+  padding-bottom: max(70px, env(safe-area-inset-bottom));
+}
+
+.mobile-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mobile Navigation (Instagram-style bottom nav) */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid #2a2b55;
+  padding: 8px 0;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+}
+
+.mobile-nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+  position: relative;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.mobile-nav-item.active {
+  color: var(--primary);
+}
+
+.mobile-nav-item .icon {
+  margin-bottom: 2px;
+}
+
+.mobile-nav-item .label {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.mobile-nav-item.active .label {
+  opacity: 1;
+}
+
+/* Hide desktop sidebar on mobile */
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  .layout {
+    grid-template-columns: 1fr;
+    padding-bottom: 70px; /* Space for bottom nav */
+  }
+  
+  .sidebar {
+    display: none !important;
+  }
+  
+  .mobile-nav {
+    display: block;
+  }
+  
+  .content {
+    padding: 12px;
+  }
+  
+  .page-container {
+    padding: 8px;
+    margin: 0;
+    max-width: 100%;
+  }
+  
+  .page-container.wide {
+    padding: 0;
+  }
+  
+  /* Card adjustments for mobile */
+  .card {
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  /* Two column layouts become single column */
+  .two-col {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .two-col.chat-layout {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 70px);
+  }
+  
+  /* Chat specific mobile adjustments */
+  .two-col.chat-layout .card.sidebar {
+    height: auto;
+    max-height: 40vh;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .two-col.chat-layout .card.chat {
+    height: calc(60vh - 20px);
+    border-radius: 8px;
+  }
+  
+  /* Form elements touch-friendly */
+  input, textarea, .btn {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  textarea {
+    min-height: 80px;
+  }
+  
+  /* Post cards mobile optimization */
+  .post-card .image-wrapper {
+    height: 400px;
+  }
+  
+  /* Home page mobile optimizations */
+  .home .feed-header {
+    margin-bottom: 8px;
+  }
+  
+  .feed-tabs {
+    padding: 8px 12px;
+  }
+  
+  .feed-tab {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  .stories-section {
+    margin-bottom: 8px;
+  }
+  
+  /* Profile page mobile */
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .profile-stats {
+    justify-content: center;
+  }
+  
+  .profile-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .profile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Create page mobile */
+  .create-form {
+    gap: 12px;
+  }
+  
+  .create-form .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Settings page mobile */
+  .settings-section {
+    margin-bottom: 16px;
+  }
+  
+  /* Reels page mobile - Full screen like TikTok */
+  .page.reels-page {
+    padding: 0;
+    margin: 0;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+  
+  .reels-container {
+    padding: 0;
+    margin: 0;
+  }
+  
+  .reel-item {
+    height: calc(100vh - 70px);
+    margin: 0;
+    scroll-snap-align: start;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  
+  .reel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Reel controls overlay */
+  .reel-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+  
+  .reel-info {
+    position: absolute;
+    left: 12px;
+    right: 80px;
+    bottom: 20px;
+    z-index: 10;
+    color: white;
+  }
+  
+  /* Feed adjustments */
+  .feed {
+    gap: 8px;
+  }
+  
+  /* Profile page mobile */
+  .grid-posts {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  /* Story bar mobile */
+  .stories-container {
+    padding: 8px;
+  }
+  
+  .story-item {
+    min-width: 60px;
+  }
+  
+  /* Modal adjustments */
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .modal-content {
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Video editor mobile */
+  .video-editor {
+    margin: 8px;
+  }
+  
+  .video-preview video {
+    max-height: 250px;
+  }
+  
+  /* Group management mobile */
+  .page-container.wide .page.two-col.chat-layout .card.sidebar {
+    position: static;
+    height: auto;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 200px 1fr;
+  }
+  
+  .sidebar {
+    padding: 12px;
+  }
+  
+  .side-link {
+    padding: 8px 10px;
+  }
+  
+  .side-link .label {
+    font-size: 13px;
+  }
+  
+  .page-container {
+    max-width: 700px;
+    padding: 12px;
+  }
+  
+  .post-card .image-wrapper {
+    height: 500px;
+  }
+  
+  .card {
+    padding: 14px;
+  }
+}
+
+/* Desktop and larger screens */
+@media (min-width: 1025px) {
+  .mobile-nav {
+    display: none !important;
+  }
+  
+  .layout {
+    grid-template-columns: 300px 1fr;
+  }
+  
+  .page-container {
+    max-width: 900px;
+  }
+  
+  .page-container.wide {
+    max-width: 1400px;
+  }
+}
+
+/* Large desktop optimizations */
+@media (min-width: 1400px) {
+  .page-container {
+    max-width: 1000px;
+  }
+  
+  .page-container.wide {
+    max-width: 1600px;
+  }
+  
+  .two-col.chat-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  .btn, .icon-btn, .side-link {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .avatar {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  /* Remove hover states that don't work on touch */
+  .btn:hover,
+  .side-link:hover,
+  .list-item:hover {
+    background: transparent;
+  }
+  
+  /* Add active/pressed states instead */
+  .btn:active,
+  .side-link:active,
+  .list-item:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+}
+
+/* Landscape phone specific */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-nav {
+    padding: 4px 0;
+  }
+  
+  .mobile-nav-item {
+    padding: 4px 8px;
+    min-height: 36px;
+  }
+  
+  .mobile-nav-item .label {
+    font-size: 9px;
+  }
+  
+  .two-col.chat-layout .card.sidebar {
+    max-height: 30vh;
+  }
+  
+  .two-col.chat-layout .card.chat {
+    height: calc(70vh - 20px);
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .avatar, .avatar-md, .avatar-lg {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
