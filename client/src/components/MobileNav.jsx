@@ -86,9 +86,9 @@ export default function MobileNav() {
       <div className="mobile-nav-items">
         {navItem('/', 'Home', <HomeIcon />)}
         {navItem('/search', 'Search', <SearchIcon />)}
+        {navItem('/chat', 'Messages', <MessageIcon />, unread)}
+        {navItem('/groups', 'Groups', <GroupsIcon />)}
         {navItem('/create', 'Create', <CreateIcon />)}
-        {navItem('/reels', 'Reels', <ReelsIcon />)}
-        {navItem('/notifications', 'Activity', <HeartIcon />, notifUnread)}
         {navItem(`/profile/${user.id}`, 'Profile', <UserIcon />)}
       </div>
     </nav>
@@ -162,6 +162,17 @@ function HeartIcon() {
   return (
     <SvgBase>
       <path d="M20.8 4.6c-1.9-1.9-5-1.9-6.9 0L12 6.5l-1.9-1.9c-1.9-1.9-5-1.9-6.9 0s-1.9 5 0 6.9L12 22l8.8-8.8c1.9-1.9 1.9-5 0-6.9z" />
+    </SvgBase>
+  )
+}
+
+function GroupsIcon() {
+  return (
+    <SvgBase>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </SvgBase>
   )
 }

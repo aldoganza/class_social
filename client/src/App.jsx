@@ -33,13 +33,11 @@ function AppContent() {
   const isChat = location.pathname.startsWith('/chat') || location.pathname.startsWith('/groups/')
   
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <div className={`layout ${isChat ? 'collapsed' : ''}`}>
-          <Sidebar />
-          <main className="content">
-            <div className={`page-container ${isChat ? 'wide' : ''}`}>
-              <Routes>
+    <div className={`layout ${isChat ? 'collapsed' : ''}`}>
+      <Sidebar />
+      <main className="content">
+        <div className={`page-container ${isChat ? 'wide' : ''}`}>
+          <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -141,7 +139,15 @@ function AppContent() {
             </div>
           </main>
           <MobileNav />
-        </div>
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <AppContent />
       </ThemeProvider>
     </AuthProvider>
   )

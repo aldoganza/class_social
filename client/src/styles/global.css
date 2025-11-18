@@ -2407,7 +2407,7 @@ body {
 @media (max-width: 768px) {
   /* Layout adjustments */
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     padding-bottom: 70px; /* Space for bottom nav */
   }
   
@@ -2416,7 +2416,36 @@ body {
   }
   
   .mobile-nav {
-    display: block;
+    display: block !important;
+  }
+  
+  /* Force all pages to be mobile-friendly */
+  .page, .page-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* Force all cards to be mobile-friendly */
+  .card {
+    width: calc(100% - 16px) !important;
+    margin: 8px !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Force all rows to stack on mobile */
+  .row, .row.gap, .row.between {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  
+  /* Exception for very specific layouts that should stay horizontal */
+  .mobile-nav-items,
+  .avatar + .row,
+  .icon + .row {
+    flex-direction: row !important;
   }
   
   .content {
