@@ -83,6 +83,33 @@ input:focus, textarea:focus { border-color: var(--info); }
 .avatar-md { width: 48px; height: 48px; min-width: 48px; min-height: 48px; border-radius: 50%; object-fit: cover; object-position: center; display: block; flex-shrink: 0; aspect-ratio: 1 / 1; }
 .avatar-lg { width: 80px; height: 80px; min-width: 80px; min-height: 80px; border-radius: 50%; object-fit: cover; object-position: center; display: block; flex-shrink: 0; aspect-ratio: 1 / 1; }
 
+/* Profile stats perfect optical line */
+.profile-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 40px; /* Fixed height for perfect alignment */
+}
+
+.profile-stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 60px; /* Ensures consistent spacing */
+}
+
+.profile-stat-number {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.profile-stat-label {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1;
+}
+
 .feed { display: flex; flex-direction: column; gap: 12px; }
 .post-card .content { margin: 8px 0; }
 .image-wrapper { border-radius: 12px; overflow: hidden; border: 1px solid #2a2b55; }
@@ -98,6 +125,62 @@ input:focus, textarea:focus { border-color: var(--info); }
   align-items: center;
   justify-content: center;
   background: #000;
+}
+
+/* Instagram-style post actions - Perfect optical line */
+.post-card .actions {
+  padding: 12px 0 8px 0;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+}
+
+.post-card .actions .row.gap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 40px; /* Fixed height for perfect alignment */
+}
+
+.post-card .actions .icon-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px; /* Fixed size for perfect optical alignment */
+}
+
+.post-card .actions .icon-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.1);
+}
+
+.post-card .actions .icon-btn.active {
+  color: #ff3040;
+}
+
+.post-card .actions .icon-btn svg {
+  display: block; /* Ensures perfect icon alignment */
+}
+
+/* Mobile actions spacing */
+@media (max-width: 768px) {
+  .post-card .actions .row.gap {
+    gap: 20px;
+  }
+  
+  .post-card .actions .icon-btn {
+    padding: 12px;
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 .post-card .image-wrapper img,

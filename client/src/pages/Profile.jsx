@@ -168,10 +168,19 @@ export default function Profile() {
         <img src={getAvatarUrl(user.profile_pic)} alt="pfp" className="avatar-lg" />
         <div style={{flex:1}}>
           <h2 style={{margin:'0 0 6px 0'}}>{user.name}</h2>
-          <div className="row gap">
-            <span className="bold">{stats.posts}</span><span className="muted small">posts</span>
-            <span className="bold">{stats.followers}</span><span className="muted small">followers</span>
-            <span className="bold">{stats.following}</span><span className="muted small">following</span>
+          <div className="profile-stats">
+            <div className="profile-stat-item">
+              <span className="profile-stat-number">{stats.posts}</span>
+              <span className="profile-stat-label">posts</span>
+            </div>
+            <div className="profile-stat-item">
+              <span className="profile-stat-number">{stats.followers}</span>
+              <span className="profile-stat-label">followers</span>
+            </div>
+            <div className="profile-stat-item">
+              <span className="profile-stat-number">{stats.following}</span>
+              <span className="profile-stat-label">following</span>
+            </div>
           </div>
           <div className="muted small">Joined {new Date(user.created_at).toLocaleDateString()}</div>
         </div>
