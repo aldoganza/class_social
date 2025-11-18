@@ -302,7 +302,7 @@ export default function GroupChat() {
         {/* Members Sidebar */}
         <div className="card sidebar">
           {/* Site Logo */}
-          <div style={{
+          <div className="logo-section" style={{
             padding: '16px',
             textAlign: 'center',
             borderBottom: '1px solid rgba(255,255,255,0.1)',
@@ -341,10 +341,46 @@ export default function GroupChat() {
           </div>
 
           <div className="chat-left-header row between" style={{alignItems:'center'}}>
-            <div className="bold">Members ({members.length})</div>
+            <div className="bold">
+              Members ({members.length})
+              {/* Debug info - remove in production */}
+              <div className="muted small" style={{fontSize:10, marginTop:2}}>
+                Role: {group.my_role || 'member'} | Creator: {isCreator ? 'Yes' : 'No'}
+              </div>
+            </div>
             {(isAdmin || isCreator) && (
-              <button className="icon-btn" onClick={() => setShowAddMember(true)} title="Add member">
-                ➕
+              <button 
+                className="btn btn-primary add-member-btn" 
+                onClick={() => setShowAddMember(true)} 
+                title="Add member"
+                style={{
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  minHeight: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                ➕ Add
+              </button>
+            )}
+            {/* Always show button for testing - remove in production */}
+            {!(isAdmin || isCreator) && (
+              <button 
+                className="btn btn-light add-member-btn" 
+                onClick={() => setShowAddMember(true)} 
+                title="Add member (Debug)"
+                style={{
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  minHeight: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                ➕ Debug Add
               </button>
             )}
           </div>
@@ -389,7 +425,7 @@ export default function GroupChat() {
         </div>
 
         {/* Chat Area */}
-        <div className="card chat">
+        <div className="card chat group-chat-main">
           <div className="chat-header row between" style={{alignItems:'center', padding:12, borderBottom:'1px solid #2a2b55'}}>
             <div className="row gap" style={{alignItems:'center'}}>
               <button className="icon-btn" onClick={() => navigate('/groups')}>←</button>
