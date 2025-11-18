@@ -17,6 +17,7 @@ import Sidebar from './components/Sidebar.jsx'
 import MobileNav from './components/MobileNav.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { useResponsive } from './hooks/useResponsive.js'
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth()
@@ -26,9 +27,11 @@ function ProtectedRoute({ children }) {
   }
   return children
 }
-export default function App() {
+function AppContent() {
   const location = useLocation()
+  const { isMobile } = useResponsive()
   const isChat = location.pathname.startsWith('/chat') || location.pathname.startsWith('/groups/')
+  
   return (
     <AuthProvider>
       <ThemeProvider>

@@ -25,7 +25,7 @@ export default function Search() {
   }, [q])
 
   return (
-    <div className="page">
+    <div className="page search-page">
       <div className="card">
         <h2 style={{marginTop:0}}>Search Classmates</h2>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type a name or email..." />

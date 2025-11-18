@@ -51,7 +51,7 @@ export default function Groups() {
   }
 
   return (
-    <div className="page">
+    <div className="page groups-page">
       <div className="card row between" style={{alignItems:'center'}}>
         <h2 style={{margin:0}}>Groups</h2>
         <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>

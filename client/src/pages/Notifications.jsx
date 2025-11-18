@@ -81,7 +81,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="page">
+    <div className="page notifications-page">
       <div className="card">
         <h2 className="title">Notifications</h2>
         {error && <div className="error">{error}</div>}

@@ -2498,14 +2498,24 @@ body {
   }
   
   /* Profile page mobile */
-  .profile-header {
+  .card.row.gap {
+    flex-direction: column;
+  }
+  
+  .card.row.gap .btn {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  
+  .profile-header .card.row.gap {
     flex-direction: column;
     text-align: center;
     gap: 16px;
   }
   
-  .profile-stats {
+  .profile-stats .row.gap {
     justify-content: center;
+    flex-wrap: wrap;
   }
   
   .profile-tabs {
@@ -2516,6 +2526,17 @@ body {
   
   .profile-tabs::-webkit-scrollbar {
     display: none;
+  }
+  
+  /* Profile create post form mobile */
+  .create-post .row.gap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .create-post .btn {
+    width: 100%;
+    margin-bottom: 8px;
   }
   
   /* Create page mobile */
@@ -2622,6 +2643,82 @@ body {
   
   .video-preview video {
     max-height: 250px;
+  }
+  
+  /* Groups page mobile */
+  .groups-page .card.row.between {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .groups-page .list-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .groups-page .list-item .row {
+    flex-direction: column;
+  }
+  
+  /* Search page mobile */
+  .search-page .card {
+    margin-bottom: 8px;
+  }
+  
+  .search-results .list-item {
+    padding: 12px;
+  }
+  
+  .search-results .list-item .row {
+    flex-wrap: wrap;
+  }
+  
+  /* Notifications page mobile */
+  .notifications-page .list-item {
+    padding: 12px;
+    flex-direction: column;
+    text-align: left;
+  }
+  
+  .notifications-page .list-item .row {
+    margin-bottom: 8px;
+  }
+  
+  /* Settings page mobile */
+  .settings-page .card {
+    margin-bottom: 12px;
+  }
+  
+  .settings-form .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Auth pages mobile */
+  .auth-wrapper {
+    padding: 16px;
+  }
+  
+  .auth-wrapper .card {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  /* General list improvements */
+  .list-item .row.between {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .list-item .row.between .btn {
+    width: 100%;
+  }
+  
+  /* General row improvements */
+  .row.gap {
+    flex-wrap: wrap;
   }
   
   /* Group management mobile */

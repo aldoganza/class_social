@@ -232,7 +232,7 @@ export default function Reels() {
   }
 
   return (
-    <div className="page" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh'}}>
+    <div className="page reels-page" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh'}}>
       <div className="col" style={{gap:40, alignItems:'center', width:'100%', maxWidth:500, margin:'0 auto', padding:'20px 0'}}>
         {loading && <div className="muted">Loading...</div>}
         {!loading && list.length === 0 && <div className="muted">No reels yet.</div>}
