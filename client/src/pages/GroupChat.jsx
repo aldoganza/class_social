@@ -17,6 +17,7 @@ export default function GroupChat() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [processingMember, setProcessingMember] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
   const [attachedFile, setAttachedFile] = useState(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const messagesRef = useRef(null)
@@ -27,6 +28,17 @@ export default function GroupChat() {
     loadMembers()
     loadMessages()
   }, [id])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDropdown && !event.target.closest('.dropdown-menu') && !event.target.closest('.menu-btn')) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showDropdown])
 
   const loadGroup = async () => {
     try {
@@ -435,22 +447,118 @@ export default function GroupChat() {
                 <div className="muted small">{members.length} members</div>
               </div>
             </div>
-            <div className="row gap">
-              <button className="btn btn-light" onClick={() => setShowMembers(!showMembers)}>
-                Members
+            <div className="row gap" style={{position:'relative'}}>
+              <button 
+                className="icon-btn menu-btn" 
+                onClick={() => setShowDropdown(!showDropdown)}
+                style={{
+                  padding: '8px',
+                  borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                  minWidth: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ⋮
               </button>
-              {(isAdmin || isCreator) && (
-                <button 
-                  className="btn" 
-                  style={{background:'#ef4444', color:'white'}}
-                  onClick={deleteGroup}
+              
+              {/* Dropdown Menu */}
+              {showDropdown && (
+                <div 
+                  className="dropdown-menu"
+                  style={{
+                    position: 'absolute',
+                    top: '50px',
+                    right: '0',
+                    background: 'var(--card)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    minWidth: '180px',
+                    zIndex: 1000,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+                  }}
                 >
-                  Delete Group
-                </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setShowMembers(!showMembers)
+                      setShowDropdown(false)
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text)',
+                      textAlign: 'left',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '4px'
+                    }}
+                  >
+                    👥 Members
+                  </button>
+                  
+                  {(isAdmin || isCreator) && (
+                    <button 
+                      className="dropdown-item delete-item"
+                      onClick={() => {
+                        deleteGroup()
+                        setShowDropdown(false)
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#ff4444',
+                        textAlign: 'left',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px'
+                      }}
+                    >
+                      🗑️ Delete Group
+                    </button>
+                  )}
+                  
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      leaveGroup()
+                      setShowDropdown(false)
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text)',
+                      textAlign: 'left',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    🚪 Leave Group
+                  </button>
+                </div>
               )}
-              <button className="btn btn-light" onClick={leaveGroup}>
-                Leave
-              </button>
             </div>
           </div>
 
