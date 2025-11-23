@@ -212,7 +212,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="page two-col chat-layout">
+    <div className="page two-col chat-layout messages-page">
       <div className="card sidebar">
         {/* Site Logo */}
         <div style={{
@@ -276,18 +276,35 @@ export default function Chat() {
           <button className="tab" role="tab" aria-selected="false">Requests</button>
         </div>
         <div className="list" role="navigation" aria-label="Conversations list">
-          {conversations.map(c => (
-            <a key={c.id} className={`list-item ${String(c.id)===String(id)?'active':''}`} href={`/chat/${c.id}`}>
-              <img src={c.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
-              <div style={{flex:1}}>
-                <div className="row between">
-                  <span className="bold">{c.name}</span>
-                  {c.unread_count > 0 && <span className="badge">{c.unread_count > 99 ? '99+' : c.unread_count}</span>}
+          {/* Show search results if searching, otherwise show conversations */}
+          {query && results.length > 0 ? (
+            results.map(u => (
+              <a key={u.id} className="list-item" href={`/chat/${u.id}`}>
+                <img src={u.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
+                <div style={{flex:1}}>
+                  <div className="bold">{u.name}</div>
+                  <div className="muted small">{u.email}</div>
                 </div>
-                <div className="muted small" title={c.last_message || ''}>{(c.last_message || '').slice(0, 40)}</div>
-              </div>
-            </a>
-          ))}
+              </a>
+            ))
+          ) : query && results.length === 0 ? (
+            <div className="list-item">
+              <div className="muted small">No users found</div>
+            </div>
+          ) : (
+            conversations.map(c => (
+              <a key={c.id} className={`list-item ${String(c.id)===String(id)?'active':''}`} href={`/chat/${c.id}`}>
+                <img src={c.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
+                <div style={{flex:1}}>
+                  <div className="row between">
+                    <span className="bold">{c.name}</span>
+                    {c.unread_count > 0 && <span className="badge">{c.unread_count > 99 ? '99+' : c.unread_count}</span>}
+                  </div>
+                  <div className="muted small" title={c.last_message || ''}>{(c.last_message || '').slice(0, 40)}</div>
+                </div>
+              </a>
+            ))
+          )}
         </div>
       </div>
 
