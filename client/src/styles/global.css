@@ -3543,43 +3543,134 @@ body {
     background: linear-gradient(90deg, transparent 0%, rgba(24, 119, 242, 0.4) 50%, transparent 100%) !important;
   }
   
+  /* Advanced Textarea Input */
   .composer textarea {
     flex: 1 !important;
     min-width: 200px !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     max-height: 120px !important;
-    padding: 10px 12px !important;
-    border-radius: 20px !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    background: rgba(255,255,255,0.05) !important;
+    padding: 12px 20px !important;
+    border-radius: 24px !important;
+    border: 2px solid rgba(24, 119, 242, 0.1) !important;
+    background: rgba(255,255,255,0.08) !important;
     color: white !important;
     resize: none !important;
     font-family: inherit !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1) !important;
+  }
+  
+  .composer textarea::placeholder {
+    color: rgba(255,255,255,0.5) !important;
+    font-weight: 400 !important;
   }
   
   .composer textarea:focus {
-    border-color: var(--accent) !important;
+    border-color: rgba(24, 119, 242, 0.4) !important;
+    background: rgba(255,255,255,0.12) !important;
     outline: none !important;
+    box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.1), inset 0 2px 4px rgba(0,0,0,0.1) !important;
+    transform: translateY(-1px) !important;
   }
   
-  .composer .icon-btn {
-    min-width: 36px !important;
-    min-height: 36px !important;
-    padding: 8px !important;
-    font-size: 14px !important;
-    border-radius: 18px !important;
+  .composer textarea:hover:not(:focus) {
+    border-color: rgba(24, 119, 242, 0.2) !important;
     background: rgba(255,255,255,0.1) !important;
-    border: none !important;
-    color: white !important;
-    flex-shrink: 0 !important;
   }
   
-  .composer .btn-primary {
-    min-width: 36px !important;
-    min-height: 36px !important;
-    padding: 8px 12px !important;
-    border-radius: 18px !important;
+  /* Advanced Composer Buttons */
+  .composer .icon-btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 10px !important;
+    font-size: 16px !important;
+    border-radius: 22px !important;
+    background: rgba(24, 119, 242, 0.1) !important;
+    border: 2px solid rgba(24, 119, 242, 0.15) !important;
+    color: rgba(24, 119, 242, 0.8) !important;
     flex-shrink: 0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .composer .icon-btn::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: rgba(24, 119, 242, 0.2) !important;
+    border-radius: 50% !important;
+    transition: all 0.3s ease !important;
+    transform: translate(-50%, -50%) !important;
+  }
+  
+  .composer .icon-btn:hover::before {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  .composer .icon-btn:hover {
+    background: rgba(24, 119, 242, 0.15) !important;
+    border-color: rgba(24, 119, 242, 0.3) !important;
+    color: rgba(24, 119, 242, 1) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2) !important;
+  }
+  
+  .composer .icon-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(24, 119, 242, 0.2) !important;
+  }
+  
+  /* Advanced Send Button */
+  .composer .btn-primary {
+    min-width: 48px !important;
+    min-height: 44px !important;
+    padding: 10px 16px !important;
+    border-radius: 22px !important;
+    flex-shrink: 0 !important;
+    background: linear-gradient(135deg, rgba(24, 119, 242, 0.9) 0%, rgba(24, 119, 242, 0.7) 100%) !important;
+    border: 2px solid rgba(24, 119, 242, 0.3) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .composer .btn-primary::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent) !important;
+    transition: left 0.5s ease !important;
+  }
+  
+  .composer .btn-primary:hover::before {
+    left: 100% !important;
+  }
+  
+  .composer .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(24, 119, 242, 1) 0%, rgba(24, 119, 242, 0.8) 100%) !important;
+    border-color: rgba(24, 119, 242, 0.5) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(24, 119, 242, 0.3) !important;
+  }
+  
+  .composer .btn-primary:active {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3) !important;
   }
   
   /* Hide some composer buttons on very small screens */

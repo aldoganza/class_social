@@ -212,7 +212,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="page two-col chat-layout messages-page">
+    <div className={`page two-col chat-layout messages-page ${id ? 'conversation-selected' : ''}`}>
       <div className="card sidebar">
         {/* Site Logo */}
         <div style={{
