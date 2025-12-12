@@ -62,7 +62,7 @@ export default function Chat() {
         try {
           const u = await api.get(`/users/${id}`)
           setOtherUser(u)
-        } catch {}
+        } catch { }
         const data = await api.get(`/messages/${id}`)
         setMessages(data)
         // scroll to bottom
@@ -181,7 +181,7 @@ export default function Chat() {
               navigate(u.pathname + u.search)
               return
             }
-          } catch {}
+          } catch { }
         }
         return (
           <a key={i} href={url} onClick={onClick} className="link" rel="noopener noreferrer">
@@ -198,11 +198,11 @@ export default function Chat() {
     const lower = String(fileUrl).toLowerCase()
     // simple extension checks
     if (/(\.png|\.jpe?g|\.gif|\.webp|\.bmp)$/.test(lower)) {
-      return <img src={fileUrl} alt="attachment" style={{maxWidth: 320, borderRadius: 8}} />
+      return <img src={fileUrl} alt="attachment" style={{ maxWidth: 320, borderRadius: 8 }} />
     }
     if (/(\.mp4|\.webm|\.ogg|\.mov)$/.test(lower)) {
       return (
-        <video controls src={fileUrl} style={{maxWidth: 420, borderRadius: 8}} />
+        <video controls src={fileUrl} style={{ maxWidth: 420, borderRadius: 8 }} />
       )
     }
     // fallback: link to file
@@ -253,8 +253,8 @@ export default function Chat() {
           </div>
         </div>
 
-        <div className="chat-left-header row between" style={{alignItems:'center'}}>
-          <div className="row gap" style={{alignItems:'center'}}>
+        <div className="chat-left-header row between" style={{ alignItems: 'center' }}>
+          <div className="row gap" style={{ alignItems: 'center' }}>
             <img src={user?.profile_pic || 'https://via.placeholder.com/32'} className="avatar" alt="Me" />
             <div className="bold">{user?.name || 'Messages'}</div>
             <span aria-hidden>▾</span>
@@ -267,7 +267,7 @@ export default function Chat() {
             className="input-compact"
             placeholder="Search"
             value={query}
-            onChange={(e)=>searchUsers(e.target.value)}
+            onChange={(e) => searchUsers(e.target.value)}
             aria-label="Search conversations"
           />
         </div>
@@ -281,7 +281,7 @@ export default function Chat() {
             results.map(u => (
               <a key={u.id} className="list-item" href={`/chat/${u.id}`}>
                 <img src={u.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
-                <div style={{flex:1}}>
+                <div style={{ flex: 1 }}>
                   <div className="bold">{u.name}</div>
                   <div className="muted small">{u.email}</div>
                 </div>
@@ -293,9 +293,9 @@ export default function Chat() {
             </div>
           ) : (
             conversations.map(c => (
-              <a key={c.id} className={`list-item ${String(c.id)===String(id)?'active':''}`} href={`/chat/${c.id}`}>
+              <a key={c.id} className={`list-item ${String(c.id) === String(id) ? 'active' : ''}`} href={`/chat/${c.id}`}>
                 <img src={c.profile_pic || 'https://via.placeholder.com/40'} className="avatar" />
-                <div style={{flex:1}}>
+                <div style={{ flex: 1 }}>
                   <div className="row between">
                     <span className="bold">{c.name}</span>
                     {c.unread_count > 0 && <span className="badge">{c.unread_count > 99 ? '99+' : c.unread_count}</span>}
@@ -312,8 +312,18 @@ export default function Chat() {
         {!id && <div className="muted">Select a classmate to start chatting.</div>}
         {id && (
           <>
-            <div className="chat-header row between" style={{alignItems:'center'}}>
-              <div className="row gap" style={{alignItems:'center'}}>
+            <div className="chat-header row between" style={{ alignItems: 'center' }}>
+              <div className="row gap" style={{ alignItems: 'center' }}>
+                {/* Mobile back button */}
+                <button
+                  className="icon-btn"
+                  style={{ display: 'none' }}
+                  onClick={() => navigate('/chat')}
+                  title="Back to conversations"
+                  aria-label="Back to conversations"
+                >
+                  ←
+                </button>
                 <img src={otherUser?.profile_pic || 'https://via.placeholder.com/40'} className="avatar" alt="Chat user" />
                 <div>
                   <div className="bold">{otherUser?.name || 'Conversation'}</div>
@@ -334,23 +344,23 @@ export default function Chat() {
                 const prevDateStr = prev ? new Date(prev.created_at).toDateString() : null
                 const showSeparator = !prev || dateStr !== prevDateStr
                 const mine = m.sender_id === user?.id
-                const rowStyle = { display:'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap:8, margin:'6px 0' }
+                const rowStyle = { display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap: 8, margin: '6px 0' }
                 const bubbleStyle = mine
-                  ? { background:'#1877f2', color:'#fff', borderRadius:16, borderTopRightRadius:4, padding:'8px 12px', maxWidth: '80%', alignSelf:'flex-end' }
-                  : { background:'rgba(255,255,255,0.08)', color:'#fff', borderRadius:16, borderTopLeftRadius:4, padding:'8px 12px', maxWidth: '80%', alignSelf:'flex-start' }
+                  ? { background: '#1877f2', color: '#fff', borderRadius: 16, borderTopRightRadius: 4, padding: '8px 12px', maxWidth: '80%', alignSelf: 'flex-end' }
+                  : { background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: 16, borderTopLeftRadius: 4, padding: '8px 12px', maxWidth: '80%', alignSelf: 'flex-start' }
                 return (
                   <div key={m.id}>
                     {showSeparator && (
-                      <div className="separator" role="separator" aria-label={dateStr} style={{textAlign:'center', margin:'10px 0'}}>{dateStr}</div>
+                      <div className="separator" role="separator" aria-label={dateStr} style={{ textAlign: 'center', margin: '10px 0' }}>{dateStr}</div>
                     )}
                     <div style={rowStyle}>
                       {!mine && (
                         <img src={otherUser?.profile_pic || 'https://via.placeholder.com/48'} className="avatar-md" alt="Sender avatar" />
                       )}
-                      <div style={{display:'flex', flexDirection:'column', alignItems: mine ? 'flex-end' : 'flex-start'}}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start' }}>
                         <div style={bubbleStyle}>
-                          <div className="row" style={{alignItems:'center', gap:8}}>
-                            <div style={{display:'flex', flexDirection:'column', gap:6}}>
+                          <div className="row" style={{ alignItems: 'center', gap: 8 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                               <div>{renderWithLinks(m.content)}</div>
                               {m.file_url && (
                                 <div>{renderAttachment(m.file_url)}</div>
@@ -362,7 +372,7 @@ export default function Chat() {
                                 title="Delete"
                                 aria-label="Delete message"
                                 onClick={() => chooseDelete(m.id)}
-                                style={{opacity:0.8}}
+                                style={{ opacity: 0.8 }}
                               >
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                   <polyline points="3 6 5 6 21 6" />
@@ -374,7 +384,7 @@ export default function Chat() {
                             )}
                           </div>
                         </div>
-                        <div className="timestamp" style={{marginTop:4, color:'var(--muted)', fontSize:12}}>{new Date(m.created_at).toLocaleTimeString()}</div>
+                        <div className="timestamp" style={{ marginTop: 4, color: 'var(--muted)', fontSize: 12 }}>{new Date(m.created_at).toLocaleTimeString()}</div>
                       </div>
                     </div>
                   </div>
@@ -383,7 +393,7 @@ export default function Chat() {
             </div>
             <form onSubmit={sendMessage} className="composer row gap" aria-label="Send message form">
               <button type="button" className="icon-btn" title="Attach" aria-label="Attach file" onClick={onPlusClick}>＋</button>
-              <input ref={fileInputRef} type="file" accept="image/*,video/*,application/*" style={{display:'none'}} onChange={onFileChange} />
+              <input ref={fileInputRef} type="file" accept="image/*,video/*,application/*" style={{ display: 'none' }} onChange={onFileChange} />
               <button type="button" className="icon-btn" title="Emoji" aria-label="Open emoji">😊</button>
               <textarea
                 ref={composerRef}

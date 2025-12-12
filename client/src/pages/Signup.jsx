@@ -7,6 +7,7 @@ export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [profileFile, setProfileFile] = useState(null)
   const [preview, setPreview] = useState('')
   const [error, setError] = useState('')
@@ -15,6 +16,10 @@ export default function Signup() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
     const form = new FormData()
     form.append('name', name)
     form.append('email', email)
@@ -94,11 +99,11 @@ export default function Signup() {
             <form onSubmit={onSubmit} className="form auth-form">
               <div className="form-group">
                 <label htmlFor="name">Full Name</label>
-                <input 
+                <input
                   id="name"
                   type="text"
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
                   autoComplete="name"
@@ -107,11 +112,11 @@ export default function Signup() {
 
               <div className="form-group">
                 <label htmlFor="email">Email Address</label>
-                <input 
+                <input
                   id="email"
                   type="email"
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
                   autoComplete="email"
@@ -120,11 +125,11 @@ export default function Signup() {
 
               <div className="form-group">
                 <label htmlFor="password">Password</label>
-                <input 
+                <input
                   id="password"
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a strong password"
                   required
                   autoComplete="new-password"
@@ -134,12 +139,26 @@ export default function Signup() {
               </div>
 
               <div className="form-group">
+                <label htmlFor="confirm-password">Confirm Password</label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                  autoComplete="new-password"
+                  minLength="6"
+                />
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="profile-pic">Profile Picture (Optional)</label>
                 <div className="file-upload-container">
-                  <input 
+                  <input
                     id="profile-pic"
-                    type="file" 
-                    accept="image/*" 
+                    type="file"
+                    accept="image/*"
                     onChange={onPickFile}
                     className="file-input"
                   />
