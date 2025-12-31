@@ -16,7 +16,7 @@ export default function MobileNav() {
       try {
         const res = await api.get('/messages/me/unread/count')
         setUnread(res.count || 0)
-      } catch {}
+      } catch { }
     }
     fetchUnread()
     if (user) timer = setInterval(fetchUnread, 10000)
@@ -35,7 +35,7 @@ export default function MobileNav() {
       try {
         const res = await api.get('/notifications/unread/count')
         setNotifUnread(res.count || 0)
-      } catch {}
+      } catch { }
     }
     fetchNotifUnread()
     if (user) timer = setInterval(fetchNotifUnread, 10000)
